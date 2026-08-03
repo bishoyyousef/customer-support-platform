@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginForm } from './components/auth/LoginForm';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { TicketForm } from './components/ticket/TicketForm';
+import { TicketDetails } from './components/ticket/TicketDetails';
 
 // Route Guards
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -145,6 +146,17 @@ export const AppContent: React.FC = () => {
             <ProtectedRoute>
               <AppLayout>
                 <TicketForm />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/ticket/:id"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <TicketDetails />
               </AppLayout>
             </ProtectedRoute>
           }
