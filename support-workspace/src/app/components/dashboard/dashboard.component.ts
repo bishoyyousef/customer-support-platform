@@ -22,8 +22,8 @@ import { Ticket, TicketStatus } from '../../core/models';
       </div>
 
       <!-- Filters & Toolbar -->
-      <div class="toolbar card">
-        <div class="toolbar-left">
+      <div class="toolbar card" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <div class="toolbar-left" style="flex: 1;">
           <!-- Search Box -->
           <div class="search-box">
             <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="2">
@@ -61,6 +61,30 @@ import { Ticket, TicketStatus } from '../../core/models';
             <option value="date-asc">Updated: Oldest First</option>
           </select>
         </div>
+
+        <div class="toolbar-right">
+          <button (click)="saveCurrentPreset()" class="btn btn-secondary" style="height: 36px; display: inline-flex; align-items: center; gap: 0.375rem;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Save View
+          </button>
+        </div>
+      </div>
+
+      <!-- Saved Presets Bar -->
+      <div class="presets-bar" *ngIf="savedPresets.length > 0">
+        <span class="presets-lbl">Saved Views:</span>
+        <span 
+          *ngFor="let p of savedPresets" 
+          class="preset-tag"
+          (click)="applyPreset(p)"
+        >
+          {{ p.name }}
+          <button class="clear-preset-btn" (click)="deletePreset(p.name, $event)">&times;</button>
+        </span>
       </div>
 
       <!-- Queue Tabs -->
@@ -172,6 +196,58 @@ import { Ticket, TicketStatus } from '../../core/models';
       display: flex;
       flex-direction: column;
       gap: 1.25rem;
+    }
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+    }
+    .presets-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: -0.25rem;
+      margin-bottom: 0.25rem;
+    }
+    .presets-lbl {
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .preset-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      background-color: var(--color-bg-surface);
+      border: 1px solid var(--color-border);
+      font-size: var(--font-size-xs);
+      font-weight: 500;
+      padding: 0.25rem 0.625rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      color: var(--color-text-main);
+      transition: all var(--transition-fast);
+    }
+    .preset-tag:hover {
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+    .clear-preset-btn {
+      background: none;
+      border: none;
+      color: var(--color-text-muted);
+      font-size: 14px;
+      line-height: 1;
+      padding: 0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .clear-preset-btn:hover {
+      color: var(--color-danger);
     }
     .dashboard-header {
       display: flex;
@@ -341,6 +417,7 @@ import { Ticket, TicketStatus } from '../../core/models';
 export class DashboardComponent implements OnInit {
   categories = ['Billing', 'Technical', 'Account', 'Other'];
   errorMsg: string | null = null;
+  savedPresets: any[] = [];
 
   // RxJS Store Streams
   searchQuery$ = new BehaviorSubject<string>('');
@@ -358,6 +435,7 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.loadPresets();
     this.loading$ = this.ticketService.loading$;
     this.loadTickets();
 
@@ -480,5 +558,48 @@ export class DashboardComponent implements OnInit {
     } catch {
       return dateStr;
     }
+  }
+
+  loadPresets(): void {
+    const raw = localStorage.getItem('support_saved_presets');
+    if (raw) {
+      try {
+        this.savedPresets = JSON.parse(raw);
+      } catch {
+        this.savedPresets = [];
+      }
+    }
+  }
+
+  saveCurrentPreset(): void {
+    const name = prompt('Enter a name for this custom view:');
+    if (!name || !name.trim()) return;
+
+    const preset = {
+      name: name.trim(),
+      category: this.selectedCategory$.value,
+      search: this.searchQuery$.value,
+      sort: this.selectedSort$.value,
+      tab: this.activeTab$.value
+    };
+
+    // Filter duplicates
+    this.savedPresets = this.savedPresets.filter(p => p.name.toLowerCase() !== preset.name.toLowerCase());
+    this.savedPresets.push(preset);
+
+    localStorage.setItem('support_saved_presets', JSON.stringify(this.savedPresets));
+  }
+
+  applyPreset(p: any): void {
+    this.selectedCategory$.next(p.category);
+    this.searchQuery$.next(p.search);
+    this.selectedSort$.next(p.sort);
+    this.activeTab$.next(p.tab);
+  }
+
+  deletePreset(name: string, event: Event): void {
+    event.stopPropagation();
+    this.savedPresets = this.savedPresets.filter(p => p.name !== name);
+    localStorage.setItem('support_saved_presets', JSON.stringify(this.savedPresets));
   }
 }
