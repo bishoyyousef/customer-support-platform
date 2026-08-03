@@ -1,0 +1,15 @@
+{
+  "name": "customer-support-platform",
+  "version": "1.0.0",
+  "description": "Customer Support Platform Monorepo",
+  "scripts": {
+    "install:all": "npm install && npm install --prefix backend && npm install --prefix customer-portal && npm install --prefix support-workspace",
+    "start:backend": "npm start --prefix backend",
+    "start:portal": "npm run dev --prefix customer-portal",
+    "start:workspace": "npm start --prefix support-workspace",
+    "start:all": "npx concurrently \"npm run start:backend\" \"npm run start:portal\" \"npm run start:workspace\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

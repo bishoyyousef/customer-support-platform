@@ -1,0 +1,280 @@
+{
+  "users": [
+    {
+      "id": "cust_1",
+      "username": "alice",
+      "password": "password",
+      "role": "customer",
+      "name": "Alice Johnson",
+      "email": "alice@example.com"
+    },
+    {
+      "id": "cust_2",
+      "username": "bob",
+      "password": "password",
+      "role": "customer",
+      "name": "Bob Smith",
+      "email": "bob@example.com"
+    },
+    {
+      "id": "agent_1",
+      "username": "agent_charlie",
+      "password": "password",
+      "role": "agent",
+      "name": "Charlie Davis",
+      "email": "charlie@example.com"
+    },
+    {
+      "id": "agent_2",
+      "username": "agent_diana",
+      "password": "password",
+      "role": "agent",
+      "name": "Diana Evans",
+      "email": "diana@example.com"
+    },
+    {
+      "id": "mgr_1",
+      "username": "manager_eve",
+      "password": "password",
+      "role": "manager",
+      "name": "Eve Foster",
+      "email": "eve@example.com"
+    }
+  ],
+  "tickets": [
+    {
+      "id": "TKT-1001",
+      "title": "Double charge on billing",
+      "description": "I tried to subscribe to premium, but checkout failed while still charging my card. Please reverse the second charge of $49.",
+      "category": "Billing",
+      "urgency": "High",
+      "status": "requires_attention",
+      "customerId": "cust_1",
+      "customerName": "Alice Johnson",
+      "assignedTo": "agent_1",
+      "assignedName": "Charlie Davis",
+      "createdAt": "2026-08-03T10:00:00.000Z",
+      "updatedAt": "2026-08-03T18:50:08.307Z",
+      "resolutionSummary": null,
+      "activityTimeline": [
+        {
+          "type": "creation",
+          "message": "Ticket created by Alice Johnson",
+          "timestamp": "2026-08-03T10:00:00.000Z",
+          "actorName": "Alice Johnson"
+        },
+        {
+          "type": "assignment",
+          "message": "Assigned to Charlie Davis",
+          "timestamp": "2026-08-03T11:00:00.000Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "note",
+          "message": "Charlie Davis recorded an internal team note",
+          "timestamp": "2026-08-03T18:49:39.526Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "note",
+          "message": "Charlie Davis recorded an internal team note",
+          "timestamp": "2026-08-03T18:50:08.307Z",
+          "actorName": "Charlie Davis"
+        }
+      ],
+      "messages": [
+        {
+          "id": "msg_1",
+          "senderId": "cust_1",
+          "senderName": "Alice Johnson",
+          "senderRole": "customer",
+          "content": "I tried to subscribe to premium, but checkout failed while still charging my card. Please reverse the second charge of $49.",
+          "timestamp": "2026-08-03T10:00:00.000Z",
+          "isInternal": false
+        },
+        {
+          "id": "msg_2",
+          "senderId": "agent_1",
+          "senderName": "Charlie Davis",
+          "senderRole": "agent",
+          "content": "Looking into this with our billing service details now.",
+          "timestamp": "2026-08-03T11:05:00.000Z",
+          "isInternal": true
+        },
+        {
+          "id": "msg_3",
+          "senderId": "agent_1",
+          "senderName": "Charlie Davis",
+          "senderRole": "agent",
+          "content": "Hi Alice, let me double check our transaction ledger for you.",
+          "timestamp": "2026-08-03T11:10:00.000Z",
+          "isInternal": false
+        },
+        {
+          "id": "msg_1785782979526",
+          "senderId": "agent_1",
+          "senderName": "Charlie Davis",
+          "senderRole": "agent",
+          "content": "Agent check log 999",
+          "timestamp": "2026-08-03T18:49:39.526Z",
+          "isInternal": true
+        },
+        {
+          "id": "msg_1785783008307",
+          "senderId": "agent_1",
+          "senderName": "Charlie Davis",
+          "senderRole": "agent",
+          "content": "Agent check log 999",
+          "timestamp": "2026-08-03T18:50:08.307Z",
+          "isInternal": true
+        }
+      ]
+    },
+    {
+      "id": "TKT-7639",
+      "title": "Billing issue again",
+      "description": "I have another invoice concern with my account billing details",
+      "category": "Billing",
+      "urgency": "Medium",
+      "status": "requires_attention",
+      "customerId": "cust_1",
+      "customerName": "Alice Johnson",
+      "assignedTo": "agent_2",
+      "assignedName": "Diana Evans",
+      "createdAt": "2026-08-03T18:49:39.570Z",
+      "updatedAt": "2026-08-03T18:49:39.884Z",
+      "resolutionSummary": "Charge reversed and adjusted on standard invoice ledger.",
+      "activityTimeline": [
+        {
+          "type": "creation",
+          "message": "Ticket created by Alice Johnson",
+          "timestamp": "2026-08-03T18:49:39.570Z",
+          "actorName": "Alice Johnson"
+        },
+        {
+          "type": "assignment",
+          "message": "Assignment changed from 'Unassigned' to 'Charlie Davis' by Charlie Davis",
+          "timestamp": "2026-08-03T18:49:39.607Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "assignment",
+          "message": "Assignment changed from 'Charlie Davis' to 'Diana Evans' by Eve Foster",
+          "timestamp": "2026-08-03T18:49:39.669Z",
+          "actorName": "Eve Foster"
+        },
+        {
+          "type": "status_change",
+          "message": "Status updated from 'requires_attention' to 'resolved' by Charlie Davis",
+          "timestamp": "2026-08-03T18:49:39.834Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "reply",
+          "message": "Alice Johnson added a reply",
+          "timestamp": "2026-08-03T18:49:39.884Z",
+          "actorName": "Alice Johnson"
+        },
+        {
+          "type": "status_change",
+          "message": "Status reverted from 'resolved' to 'requires_attention' automatically by system due to customer response",
+          "timestamp": "2026-08-03T18:49:39.884Z",
+          "actorName": "System"
+        }
+      ],
+      "messages": [
+        {
+          "id": "msg_1785782979570",
+          "senderId": "cust_1",
+          "senderName": "Alice Johnson",
+          "senderRole": "customer",
+          "content": "I have another invoice concern with my account billing details",
+          "timestamp": "2026-08-03T18:49:39.570Z",
+          "isInternal": false
+        },
+        {
+          "id": "msg_1785782979884",
+          "senderId": "cust_1",
+          "senderName": "Alice Johnson",
+          "senderRole": "customer",
+          "content": "Wait, it still shows pending on my online banking.",
+          "timestamp": "2026-08-03T18:49:39.884Z",
+          "isInternal": false
+        }
+      ]
+    },
+    {
+      "id": "TKT-8885",
+      "title": "Billing issue again",
+      "description": "I have another invoice concern with my account billing details",
+      "category": "Billing",
+      "urgency": "Medium",
+      "status": "requires_attention",
+      "customerId": "cust_1",
+      "customerName": "Alice Johnson",
+      "assignedTo": "agent_2",
+      "assignedName": "Diana Evans",
+      "createdAt": "2026-08-03T18:50:08.352Z",
+      "updatedAt": "2026-08-03T18:50:08.537Z",
+      "resolutionSummary": "Charge reversed and adjusted on standard invoice ledger.",
+      "activityTimeline": [
+        {
+          "type": "creation",
+          "message": "Ticket created by Alice Johnson",
+          "timestamp": "2026-08-03T18:50:08.352Z",
+          "actorName": "Alice Johnson"
+        },
+        {
+          "type": "assignment",
+          "message": "Assignment changed from 'Unassigned' to 'Charlie Davis' by Charlie Davis",
+          "timestamp": "2026-08-03T18:50:08.391Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "assignment",
+          "message": "Assignment changed from 'Charlie Davis' to 'Diana Evans' by Eve Foster",
+          "timestamp": "2026-08-03T18:50:08.434Z",
+          "actorName": "Eve Foster"
+        },
+        {
+          "type": "status_change",
+          "message": "Status updated from 'requires_attention' to 'resolved' by Charlie Davis",
+          "timestamp": "2026-08-03T18:50:08.480Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "reply",
+          "message": "Alice Johnson added a reply",
+          "timestamp": "2026-08-03T18:50:08.537Z",
+          "actorName": "Alice Johnson"
+        },
+        {
+          "type": "status_change",
+          "message": "Status reverted from 'resolved' to 'requires_attention' automatically by system due to customer response",
+          "timestamp": "2026-08-03T18:50:08.537Z",
+          "actorName": "System"
+        }
+      ],
+      "messages": [
+        {
+          "id": "msg_1785783008352",
+          "senderId": "cust_1",
+          "senderName": "Alice Johnson",
+          "senderRole": "customer",
+          "content": "I have another invoice concern with my account billing details",
+          "timestamp": "2026-08-03T18:50:08.352Z",
+          "isInternal": false
+        },
+        {
+          "id": "msg_1785783008537",
+          "senderId": "cust_1",
+          "senderName": "Alice Johnson",
+          "senderRole": "customer",
+          "content": "Wait, it still shows pending on my online banking.",
+          "timestamp": "2026-08-03T18:50:08.537Z",
+          "isInternal": false
+        }
+      ]
+    }
+  ]
+}
