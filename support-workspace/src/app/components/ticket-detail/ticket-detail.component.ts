@@ -7,6 +7,7 @@ import { Subscription, interval, switchMap, Observable } from 'rxjs';
 import { TicketService } from '../../core/services/ticket.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Ticket, Message, ActivityEvent, User, TicketStatus } from '../../core/models';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-ticket-detail',
@@ -885,11 +886,11 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
 
   // Native HttpClient wrappers for notes/messages to keep code simple
   private httpPost(pathSuffix: string, body: any): Observable<any> {
-    return this.http.post(`http://localhost:5000/api/tickets/${pathSuffix}`, body);
+    return this.http.post(`${environment.apiUrl}/tickets/${pathSuffix}`, body);
   }
 
   private patchTicketField(body: any): Observable<any> {
-    return this.http.patch(`http://localhost:5000/api/tickets/${this.ticket!.id}`, body);
+    return this.http.patch(`${environment.apiUrl}/tickets/${this.ticket!.id}`, body);
   }
 
   // CSS mappings

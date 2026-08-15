@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Ticket } from '../models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TicketService {
-  private apiUrl = 'http://localhost:5000/api/tickets';
+  private apiUrl = `${environment.apiUrl}/tickets`;
   
   // Reactive ticket cache store
   private ticketsSubject = new BehaviorSubject<Ticket[]>([]);
