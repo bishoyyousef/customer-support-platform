@@ -105,6 +105,20 @@ function validateTicket(ticketData, isUpdate = false) {
   };
 }
 
+// Root Health/Index endpoint
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'online',
+    message: 'Customer Support Platform Shared API Service',
+    docs: '/README.md',
+    endpoints: [
+      { method: 'POST', path: '/api/auth/login', desc: 'Agent/Customer Authentication' },
+      { method: 'GET', path: '/api/tickets', desc: 'List active tickets (RBAC Scoped)' },
+      { method: 'POST', path: '/api/tickets', desc: 'Submit a new support ticket (Customer only)' }
+    ]
+  });
+});
+
 // 1. Auth Routing: Login endpoint
 app.post('/api/auth/login', (req, res) => {
   const { username, password } = req.body;

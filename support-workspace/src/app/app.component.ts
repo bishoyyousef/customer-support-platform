@@ -10,9 +10,9 @@ import { User } from './core/models';
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, TitleCasePipe],
   template: `
-    <div *ngIf="isLoggedIn; else loginView" class="app-container">
+    <div [class.app-container]="isLoggedIn">
       <!-- Sidebar Navigation Console -->
-      <aside class="sidebar">
+      <aside class="sidebar" *ngIf="isLoggedIn">
         <div class="sidebar-header">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" fill="var(--color-accent)"/>
@@ -54,8 +54,8 @@ import { User } from './core/models';
       </aside>
 
       <!-- Main Content Layout Pane -->
-      <div class="content-frame">
-        <header class="main-header">
+      <div [class.content-frame]="isLoggedIn">
+        <header class="main-header" *ngIf="isLoggedIn">
           <div class="header-left">
             <span class="page-title">Workspace Console</span>
           </div>
@@ -71,16 +71,11 @@ import { User } from './core/models';
           </div>
         </header>
 
-        <div class="main-viewport">
+        <div [class.main-viewport]="isLoggedIn">
           <router-outlet></router-outlet>
         </div>
       </div>
     </div>
-
-    <!-- Login View Scaffold -->
-    <ng-template #loginView>
-      <router-outlet></router-outlet>
-    </ng-template>
   `
 })
 export class AppComponent implements OnInit, OnDestroy {

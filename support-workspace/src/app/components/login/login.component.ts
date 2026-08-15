@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -213,7 +213,7 @@ import { AuthService } from '../../core/services/auth.service';
     }
   `]
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   username = '';
   password = '';
   isSubmitting = false;
@@ -223,6 +223,13 @@ export class LoginComponent {
     private authService: AuthService,
     private router: Router
   ) {}
+
+  ngOnInit(): void {
+    // If already authenticated, skip login and go to dashboard
+    if (this.authService.isAuthenticated) {
+      this.router.navigate(['/dashboard']);
+    }
+  }
 
   onSubmit(): void {
     if (!this.username.trim() || !this.password.trim()) {

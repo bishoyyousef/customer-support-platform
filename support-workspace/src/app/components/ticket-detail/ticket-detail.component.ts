@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked }
 import { CommonModule, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { Subscription, interval, switchMap, Observable } from 'rxjs';
 import { TicketService } from '../../core/services/ticket.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -686,7 +687,8 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
     private route: ActivatedRoute,
     private ticketService: TicketService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
@@ -883,13 +885,11 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
 
   // Native HttpClient wrappers for notes/messages to keep code simple
   private httpPost(pathSuffix: string, body: any): Observable<any> {
-    const http = (this.ticketService as any).http; // Read HttpClient reference from TicketService to reuse it
-    return http.post(`http://localhost:5000/api/tickets/${pathSuffix}`, body);
+    return this.http.post(`http://localhost:5000/api/tickets/${pathSuffix}`, body);
   }
 
   private patchTicketField(body: any): Observable<any> {
-    const http = (this.ticketService as any).http;
-    return http.patch(`http://localhost:5000/api/tickets/${this.ticket!.id}`, body);
+    return this.http.patch(`http://localhost:5000/api/tickets/${this.ticket!.id}`, body);
   }
 
   // CSS mappings

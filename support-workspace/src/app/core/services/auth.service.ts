@@ -16,7 +16,12 @@ export class AuthService {
     const storedToken = localStorage.getItem('support_platform_token');
     const storedUser = localStorage.getItem('support_platform_user');
     if (storedToken && storedUser) {
-      this.currentUserSubject.next(JSON.parse(storedUser));
+      try {
+        this.currentUserSubject.next(JSON.parse(storedUser));
+      } catch {
+        localStorage.removeItem('support_platform_token');
+        localStorage.removeItem('support_platform_user');
+      }
     }
   }
 

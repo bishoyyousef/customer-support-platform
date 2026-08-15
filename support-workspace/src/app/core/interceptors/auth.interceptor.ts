@@ -1,10 +1,8 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { AuthService } from '../services/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
-  const token = authService.token;
+  // Read token directly from storage to eliminate DI circular dependency loops
+  const token = localStorage.getItem('support_platform_token');
 
   if (token) {
     const clonedReq = req.clone({

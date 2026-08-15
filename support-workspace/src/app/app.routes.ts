@@ -20,6 +20,6 @@ export const routes: Routes = [
     loadComponent: () => import('./components/manager-summary/manager-summary.component').then(m => m.ManagerSummaryComponent),
     canActivate: [authGuard, roleGuard]
   },
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-  { path: '**', redirectTo: 'dashboard' }
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '**', redirectTo: 'login' }
 ];
