@@ -7,7 +7,12 @@
     "start:backend": "npm start --prefix backend",
     "start:portal": "npm run dev --prefix customer-portal",
     "start:workspace": "npm start --prefix support-workspace",
-    "start:all": "npx concurrently \"npm run start:backend\" \"npm run start:portal\" \"npm run start:workspace\""
+    "start:all": "npx concurrently \"npm run start:backend\" \"npm run start:portal\" \"npm run start:workspace\"",
+    "test:backend": "npm test --prefix backend",
+    "test:portal": "npm test --prefix customer-portal",
+    "test:workspace": "npm test --prefix support-workspace",
+    "test:all": "npm run test:backend && npm run test:portal && npm run test:workspace",
+    "test": "npm run test:all"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

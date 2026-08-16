@@ -4,12 +4,12 @@ const { spawn } = require('node:child_process');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = 5005;
-const BASE_URL = `http://localhost:${PORT}/api`;
+let PORT = 5005;
+let BASE_URL = `http://localhost:${PORT}/api`;
 const DB_PATH = path.join(__dirname, '../db.json');
 const BACKUP_PATH = path.join(__dirname, '../db.json.bak');
 
-let serverProcess;
+let serverProcess = null;
 
 function backupDb() {
   if (fs.existsSync(DB_PATH)) {
@@ -24,27 +24,47 @@ function restoreDb() {
   }
 }
 
-async function waitForServer(retries = 20) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const res = await fetch(`http://localhost:${PORT}/`);
-      if (res.ok) return;
-    } catch {
-      await new Promise(r => setTimeout(r, 250));
-    }
+async function isServerRunning(url) {
+  try {
+    const res = await fetch(url);
+    return res.ok;
+  } catch {
+    return false;
   }
-  throw new Error(`Server failed to start on port ${PORT}`);
+}
+
+async function waitForServer(port, retries = 30) {
+  for (let i = 0; i < retries; i++) {
+    if (await isServerRunning(`http://localhost:${port}/`)) {
+      return true;
+    }
+    await new Promise(r => setTimeout(r, 200));
+  }
+  return false;
 }
 
 describe('Backend Security & Business Rules API Test Suite', () => {
   before(async () => {
     backupDb();
-    serverProcess = spawn(process.execPath, ['server.js'], {
-      cwd: path.join(__dirname, '..'),
-      env: { ...process.env, PORT: PORT.toString() },
-      stdio: ['ignore', 'ignore', 'inherit']
-    });
-    await waitForServer();
+    
+    // Check if backend server is already running on port 5000
+    const running5000 = await isServerRunning('http://localhost:5000/');
+    if (running5000) {
+      PORT = 5000;
+      BASE_URL = `http://localhost:${PORT}/api`;
+    } else {
+      PORT = 5005;
+      BASE_URL = `http://localhost:${PORT}/api`;
+      serverProcess = spawn(process.execPath, ['server.js'], {
+        cwd: path.join(__dirname, '..'),
+        env: { ...process.env, PORT: PORT.toString() },
+        stdio: ['ignore', 'ignore', 'inherit']
+      });
+      const ok = await waitForServer(PORT);
+      if (!ok) {
+        throw new Error(`Server failed to start on port ${PORT}`);
+      }
+    }
   });
 
   after(() => {
