@@ -293,6 +293,36 @@ import { environment } from '../../../environments/environment';
       overflow: hidden;
     }
 
+    @media (max-width: 992px) {
+      .workspace-grid {
+        grid-template-columns: 1fr 260px;
+        height: auto;
+        overflow: visible;
+      }
+      .queue-pane {
+        display: none;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .workspace-grid {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+      }
+      .queue-pane {
+        display: block;
+        max-height: 200px;
+      }
+      .timeline-pane {
+        height: 500px;
+      }
+      .details-pane {
+        height: auto;
+      }
+    }
+
     /* Column 1: Queue list */
     .queue-pane {
       background-color: var(--color-bg-surface);

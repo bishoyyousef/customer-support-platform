@@ -1,12 +1,13 @@
 {
   "name": "support-workspace",
   "version": "0.0.0",
+  "type": "module",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "node --test src/__tests__/workspace.test.js"
   },
   "private": true,
   "packageManager": "npm@11.6.1",
