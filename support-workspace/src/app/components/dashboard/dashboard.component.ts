@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { BehaviorSubject, Observable, combineLatest, map } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, map, Subscription, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { TicketService } from '../../core/services/ticket.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Ticket, TicketStatus } from '../../core/models';
@@ -188,6 +188,29 @@ import { Ticket, TicketStatus } from '../../core/models';
             </tr>
           </tbody>
         </table>
+
+        <!-- Pagination controls -->
+        <div *ngIf="(totalPages$ | async) && (totalPages$ | async)! > 1" class="pagination-controls" style="display: flex; justify-content: center; align-items: center; gap: 1.5rem; padding: 1.5rem; border-top: 1px solid var(--color-border); flex-wrap: wrap;">
+          <button
+            (click)="onPageChange((page$ | async)! - 1)"
+            [disabled]="(page$ | async) === 1"
+            class="btn btn-secondary"
+            style="min-width: 90px;"
+          >
+            Previous
+          </button>
+          <span class="page-info" style="font-size: var(--font-size-sm); color: var(--color-text-muted);">
+            Page <strong>{{ page$ | async }}</strong> of <strong>{{ totalPages$ | async }}</strong> (Total: {{ totalItems$ | async }} tickets)
+          </span>
+          <button
+            (click)="onPageChange((page$ | async)! + 1)"
+            [disabled]="(page$ | async) === (totalPages$ | async)"
+            class="btn btn-secondary"
+            style="min-width: 90px;"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   `,
@@ -414,7 +437,7 @@ import { Ticket, TicketStatus } from '../../core/models';
     }
   `]
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   categories = ['Billing', 'Technical', 'Account', 'Other'];
   errorMsg: string | null = null;
   savedPresets: any[] = [];
@@ -424,9 +447,18 @@ export class DashboardComponent implements OnInit {
   selectedCategory$ = new BehaviorSubject<string>('All');
   selectedSort$ = new BehaviorSubject<string>('urgency-desc');
   activeTab$ = new BehaviorSubject<'attention' | 'mine' | 'all'>('attention');
+  currentPage$ = new BehaviorSubject<number>(1);
   
   loading$!: Observable<boolean>;
   filteredTickets$!: Observable<Ticket[]>;
+
+  // Pagination metadata streams
+  page$!: Observable<number>;
+  totalPages$!: Observable<number>;
+  totalItems$!: Observable<number>;
+
+  private querySubscription?: Subscription;
+  private filterResetSubscription?: Subscription;
 
   constructor(
     private ticketService: TicketService,
@@ -437,72 +469,70 @@ export class DashboardComponent implements OnInit {
   ngOnInit(): void {
     this.loadPresets();
     this.loading$ = this.ticketService.loading$;
-    this.loadTickets();
 
-    // Map filters and lists reactively
-    this.filteredTickets$ = combineLatest([
-      this.ticketService.tickets$,
+    this.page$ = this.ticketService.page$;
+    this.totalPages$ = this.ticketService.totalPages$;
+    this.totalItems$ = this.ticketService.totalItems$;
+
+    // 1. Reset page to 1 on any filter changes
+    this.filterResetSubscription = combineLatest([
+      this.searchQuery$,
+      this.selectedCategory$,
+      this.selectedSort$,
+      this.activeTab$
+    ]).pipe(
+      debounceTime(50),
+      distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b))
+    ).subscribe(() => {
+      this.currentPage$.next(1);
+    });
+
+    // 2. Fetch tickets server-side on query parameter change
+    this.querySubscription = combineLatest([
       this.searchQuery$,
       this.selectedCategory$,
       this.selectedSort$,
       this.activeTab$,
+      this.currentPage$,
       this.authService.currentUser$
     ]).pipe(
-      map(([tickets, search, category, sort, tab, currentUser]) => {
+      debounceTime(300),
+      distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
+      switchMap(([search, category, sort, tab, page, currentUser]) => {
         if (!currentUser) return [];
 
-        let result = [...tickets];
+        const [sortField, sortOrder] = sort.split('-');
 
-        // 1. Tab Queues
-        if (tab === 'attention') {
-          // Requires Attention: unassigned tickets OR marked requires_attention
-          result = result.filter(t => !t.assignedTo || t.status === 'requires_attention');
-        } else if (tab === 'mine') {
-          // My Workload: assigned to logged in user
-          result = result.filter(t => t.assignedTo === currentUser.id);
-        }
+        const params: any = {
+          page,
+          limit: 10,
+          search: search.trim() || undefined,
+          category: category === 'All' ? undefined : category,
+          sort: sortField,
+          order: sortOrder,
+          queue: tab
+        };
 
-        // 2. Category filtering
-        if (category !== 'All') {
-          result = result.filter(t => t.category === category);
-        }
-
-        // 3. Search text matching (ID, title, customer name)
-        if (search.trim()) {
-          const q = search.toLowerCase().trim();
-          result = result.filter(t => 
-            t.id.toLowerCase().includes(q) || 
-            t.title.toLowerCase().includes(q) || 
-            t.customerName.toLowerCase().includes(q)
-          );
-        }
-
-        // 4. Queue sorting
-        result.sort((a, b) => {
-          if (sort.startsWith('urgency')) {
-            const urgencyWeight = { 'High': 3, 'Medium': 2, 'Low': 1 };
-            const weightA = urgencyWeight[a.urgency] || 0;
-            const weightB = urgencyWeight[b.urgency] || 0;
-            return sort === 'urgency-desc' ? weightB - weightA : weightA - weightB;
-          } else {
-            const dateA = new Date(a.updatedAt).getTime();
-            const dateB = new Date(b.updatedAt).getTime();
-            return sort === 'date-desc' ? dateB - dateA : dateA - dateB;
-          }
-        });
-
-        return result;
+        this.errorMsg = null;
+        return this.ticketService.fetchTickets(params);
       })
-    );
-  }
-
-  loadTickets(): void {
-    this.errorMsg = null;
-    this.ticketService.fetchTickets().subscribe({
+    ).subscribe({
       error: (err) => {
         this.errorMsg = err.error?.message || err.message || 'Failed to load tickets.';
       }
     });
+
+    // Bind filteredTickets$ directly to the cached tickets array
+    this.filteredTickets$ = this.ticketService.tickets$;
+  }
+
+  ngOnDestroy(): void {
+    if (this.querySubscription) {
+      this.querySubscription.unsubscribe();
+    }
+    if (this.filterResetSubscription) {
+      this.filterResetSubscription.unsubscribe();
+    }
   }
 
   onSearchChange(val: string): void {
@@ -519,6 +549,10 @@ export class DashboardComponent implements OnInit {
 
   onTabChange(tab: 'attention' | 'mine' | 'all'): void {
     this.activeTab$.next(tab);
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage$.next(page);
   }
 
   claimTicket(ticketId: string): void {

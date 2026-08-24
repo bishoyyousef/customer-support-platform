@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { BehaviorSubject, Observable, tap, map } from 'rxjs';
 import { Ticket } from '../models';
 import { environment } from '../../../environments/environment';
 
@@ -17,20 +17,50 @@ export class TicketService {
   private loadingSubject = new BehaviorSubject<boolean>(false);
   public loading$ = this.loadingSubject.asObservable();
 
+  // Pagination streams
+  private pageSubject = new BehaviorSubject<number>(1);
+  public page$ = this.pageSubject.asObservable();
+
+  private totalPagesSubject = new BehaviorSubject<number>(1);
+  public totalPages$ = this.totalPagesSubject.asObservable();
+
+  private totalItemsSubject = new BehaviorSubject<number>(0);
+  public totalItems$ = this.totalItemsSubject.asObservable();
+
   constructor(private http: HttpClient) {}
 
-  fetchTickets(): Observable<Ticket[]> {
+  fetchTickets(paramsObj?: any): Observable<Ticket[]> {
     this.loadingSubject.next(true);
-    return this.http.get<Ticket[]>(this.apiUrl).pipe(
+    let params = new HttpParams();
+    if (paramsObj) {
+      Object.entries(paramsObj).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== '') {
+          params = params.set(key, String(val));
+        }
+      });
+    }
+
+    return this.http.get<Ticket[]>(this.apiUrl, { params, observe: 'response' }).pipe(
       tap({
-        next: (tickets) => {
+        next: (res) => {
+          const tickets = res.body || [];
           this.ticketsSubject.next(tickets);
+          
+          const page = parseInt(res.headers.get('X-Pagination-Page') || '1', 10);
+          const totalPages = parseInt(res.headers.get('X-Pagination-Total-Pages') || '1', 10);
+          const totalItems = parseInt(res.headers.get('X-Pagination-Total-Count') || '0', 10);
+
+          this.pageSubject.next(page);
+          this.totalPagesSubject.next(totalPages);
+          this.totalItemsSubject.next(totalItems);
+
           this.loadingSubject.next(false);
         },
         error: () => {
           this.loadingSubject.next(false);
         }
-      })
+      }),
+      map(res => res.body || [])
     );
   }
 
