@@ -10,12 +10,69 @@ export const Dashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Pagination & filter states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [activeTab, setActiveTab] = useState<'active' | 'pending' | 'resolved'>('active');
+
+  // Search debouncing states
+  const [searchVal, setSearchVal] = useState('');
+  const [debouncedSearchVal, setDebouncedSearchVal] = useState('');
+
+  // Summary counts state from backend custom headers
+  const [activeCountVal, setActiveCountVal] = useState(0);
+  const [pendingCountVal, setPendingCountVal] = useState(0);
+  const [resolvedCountVal, setResolvedCountVal] = useState(0);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchVal(searchVal);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchVal]);
+
   const fetchTickets = async () => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const data = await api.getTickets();
-      setTickets(data);
+      let statusQuery = '';
+      if (activeTab === 'active') {
+        statusQuery = 'requires_attention,under_investigation';
+      } else if (activeTab === 'pending') {
+        statusQuery = 'pending_customer';
+      } else if (activeTab === 'resolved') {
+        statusQuery = 'resolved';
+      }
+
+      const res = await api.getTickets({
+        page: currentPage,
+        limit: 10,
+        search: debouncedSearchVal,
+        category: selectedCategory === 'All' ? undefined : selectedCategory,
+        status: statusQuery
+      });
+
+      setTickets(res.data);
+
+      // Parse custom pagination & summary count headers
+      const headerPage = parseInt(res.headers.get('X-Pagination-Page') || '1', 10);
+      const headerTotalPages = parseInt(res.headers.get('X-Pagination-Total-Pages') || '1', 10);
+      const headerTotalItems = parseInt(res.headers.get('X-Pagination-Total-Count') || '0', 10);
+      
+      const headerActive = parseInt(res.headers.get('X-Pagination-Active-Count') || '0', 10);
+      const headerPending = parseInt(res.headers.get('X-Pagination-Pending-Count') || '0', 10);
+      const headerResolved = parseInt(res.headers.get('X-Pagination-Resolved-Count') || '0', 10);
+
+      setCurrentPage(headerPage);
+      setTotalPages(headerTotalPages);
+      setTotalItems(headerTotalItems);
+      setActiveCountVal(headerActive);
+      setPendingCountVal(headerPending);
+      setResolvedCountVal(headerResolved);
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to retrieve support requests.');
     } finally {
@@ -23,9 +80,10 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  // Re-run fetching when query conditions or page changes
   useEffect(() => {
     fetchTickets();
-  }, []);
+  }, [currentPage, debouncedSearchVal, selectedCategory, activeTab]);
 
   return (
     <div>
@@ -58,8 +116,25 @@ export const Dashboard: React.FC = () => {
         </div>
       ) : (
         <>
-          <SummaryCards tickets={tickets} />
-          <TicketList tickets={tickets} isLoading={isLoading} />
+          <SummaryCards 
+            activeCountVal={activeCountVal} 
+            pendingCountVal={pendingCountVal} 
+            resolvedCountVal={resolvedCountVal} 
+          />
+          <TicketList 
+            tickets={tickets} 
+            isLoading={isLoading} 
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            searchQuery={searchVal}
+            selectedCategory={selectedCategory}
+            activeTab={activeTab}
+            onPageChange={setCurrentPage}
+            onSearchChange={setSearchVal}
+            onCategoryChange={(cat) => { setSelectedCategory(cat); setCurrentPage(1); }}
+            onTabChange={(tab) => { setActiveTab(tab); setCurrentPage(1); }}
+          />
         </>
       )}
     </div>

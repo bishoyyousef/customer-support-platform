@@ -47,7 +47,42 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     return {} as T;
   }
 
-  return response.json() as Promise<T>;
+async function requestWithResponse<T>(path: string, options: RequestInit = {}): Promise<{ data: T; headers: Headers }> {
+  const token = localStorage.getItem('support_platform_token');
+  const headers = new Headers(options.headers || {});
+  
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  
+  if (options.body && !(options.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/${path}`, {
+    ...options,
+    headers,
+  });
+
+  if (!response.ok) {
+    let errorMessage = 'An error occurred';
+    let errors: string[] = [];
+    try {
+      const data = await response.json();
+      errorMessage = data.message || errorMessage;
+      errors = data.errors || [];
+    } catch {
+      errorMessage = response.statusText || errorMessage;
+    }
+    throw new ApiError(errorMessage, response.status, errors);
+  }
+
+  if (response.status === 204) {
+    return { data: {} as T, headers: response.headers };
+  }
+
+  const data = await response.json() as T;
+  return { data, headers: response.headers };
 }
 
 export const api = {
@@ -58,8 +93,18 @@ export const api = {
     });
   },
 
-  getTickets: async () => {
-    return request<any[]>('tickets');
+  getTickets: async (params?: { page?: number; limit?: number; search?: string; status?: string; category?: string; sort?: string; order?: string; queue?: string }) => {
+    const query = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== '') {
+          query.set(key, String(val));
+        }
+      });
+    }
+    const queryString = query.toString();
+    const path = queryString ? `tickets?${queryString}` : 'tickets';
+    return requestWithResponse<any[]>(path);
   },
 
   getTicketDetails: async (id: string) => {

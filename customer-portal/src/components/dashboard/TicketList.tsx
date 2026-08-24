@@ -1,17 +1,36 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { type Ticket, type TicketStatus } from '../../types';
 
 interface TicketListProps {
   tickets: Ticket[];
   isLoading: boolean;
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  searchQuery: string;
+  selectedCategory: string;
+  activeTab: 'active' | 'pending' | 'resolved';
+  onPageChange: (page: number) => void;
+  onSearchChange: (search: string) => void;
+  onCategoryChange: (category: string) => void;
+  onTabChange: (tab: 'active' | 'pending' | 'resolved') => void;
 }
 
-export const TicketList: React.FC<TicketListProps> = ({ tickets, isLoading }) => {
-  const [activeTab, setActiveTab] = useState<'active' | 'pending' | 'resolved'>('active');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-
+export const TicketList: React.FC<TicketListProps> = ({
+  tickets,
+  isLoading,
+  currentPage,
+  totalPages,
+  totalItems,
+  searchQuery,
+  selectedCategory,
+  activeTab,
+  onPageChange,
+  onSearchChange,
+  onCategoryChange,
+  onTabChange
+}) => {
   const categories = ['All', 'Billing', 'Technical', 'Account', 'Other'];
 
   const getStatusText = (status: TicketStatus) => {
@@ -31,36 +50,6 @@ export const TicketList: React.FC<TicketListProps> = ({ tickets, isLoading }) =>
   const getUrgencyBadgeClass = (urgency: 'Low' | 'Medium' | 'High') => {
     return `badge badge-${urgency.toLowerCase()}`;
   };
-
-  // Filter logic
-  const filteredTickets = tickets.filter(t => {
-    // 1. Tab filter
-    if (activeTab === 'active' && t.status !== 'requires_attention' && t.status !== 'under_investigation') {
-      return false;
-    }
-    if (activeTab === 'pending' && t.status !== 'pending_customer') {
-      return false;
-    }
-    if (activeTab === 'resolved' && t.status !== 'resolved') {
-      return false;
-    }
-
-    // 2. Category filter
-    if (selectedCategory !== 'All' && t.category !== selectedCategory) {
-      return false;
-    }
-
-    // 3. Search query filter
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      const idMatch = t.id.toLowerCase().includes(q);
-      const titleMatch = t.title.toLowerCase().includes(q);
-      const descMatch = t.description?.toLowerCase().includes(q) || false;
-      return idMatch || titleMatch || descMatch;
-    }
-
-    return true;
-  });
 
   const formatDate = (dateStr: string) => {
     try {
@@ -102,7 +91,7 @@ export const TicketList: React.FC<TicketListProps> = ({ tickets, isLoading }) =>
             style={styles.searchInput}
             placeholder="Search by ID, title, or description..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => onSearchChange(e.target.value)}
           />
         </div>
 
@@ -110,7 +99,7 @@ export const TicketList: React.FC<TicketListProps> = ({ tickets, isLoading }) =>
           className="form-control"
           style={styles.categorySelect}
           value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
+          onChange={(e) => onCategoryChange(e.target.value)}
         >
           {categories.map(c => (
             <option key={c} value={c}>{c === 'All' ? 'All Categories' : c}</option>
@@ -121,19 +110,19 @@ export const TicketList: React.FC<TicketListProps> = ({ tickets, isLoading }) =>
       {/* Tabs */}
       <div style={styles.tabContainer}>
         <button
-          onClick={() => setActiveTab('active')}
+          onClick={() => onTabChange('active')}
           style={{ ...styles.tab, ...(activeTab === 'active' ? styles.activeTab : {}) }}
         >
           Active
         </button>
         <button
-          onClick={() => setActiveTab('pending')}
+          onClick={() => onTabChange('pending')}
           style={{ ...styles.tab, ...(activeTab === 'pending' ? styles.activeTab : {}) }}
         >
           Action Required
         </button>
         <button
-          onClick={() => setActiveTab('resolved')}
+          onClick={() => onTabChange('resolved')}
           style={{ ...styles.tab, ...(activeTab === 'resolved' ? styles.activeTab : {}) }}
         >
           Resolved
@@ -142,7 +131,7 @@ export const TicketList: React.FC<TicketListProps> = ({ tickets, isLoading }) =>
 
       {/* List */}
       <div style={styles.list}>
-        {filteredTickets.length === 0 ? (
+        {tickets.length === 0 ? (
           <div className="card" style={styles.emptyCard}>
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="1.5">
               <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
@@ -153,24 +142,51 @@ export const TicketList: React.FC<TicketListProps> = ({ tickets, isLoading }) =>
             <p style={styles.emptyDesc}>Try adjusting your filters or search query, or submit a new ticket.</p>
           </div>
         ) : (
-          filteredTickets.map(t => (
-            <div key={t.id} className="card" style={styles.ticketCard}>
-              <div style={styles.cardHeader}>
-                <div style={styles.titleArea}>
-                  <span style={styles.refId}>{t.id}</span>
-                  <Link to={`/ticket/${t.id}`} style={styles.ticketTitle}>{t.title}</Link>
+          <>
+            {tickets.map(t => (
+              <div key={t.id} className="card" style={styles.ticketCard}>
+                <div style={styles.cardHeader}>
+                  <div style={styles.titleArea}>
+                    <span style={styles.refId}>{t.id}</span>
+                    <Link to={`/ticket/${t.id}`} style={styles.ticketTitle}>{t.title}</Link>
+                  </div>
+                  <div style={styles.badgeArea}>
+                    <span className={getUrgencyBadgeClass(t.urgency)}>{t.urgency} Priority</span>
+                    <span className={getStatusBadgeClass(t.status)}>{getStatusText(t.status)}</span>
+                  </div>
                 </div>
-                <div style={styles.badgeArea}>
-                  <span className={getUrgencyBadgeClass(t.urgency)}>{t.urgency} Priority</span>
-                  <span className={getStatusBadgeClass(t.status)}>{getStatusText(t.status)}</span>
+                <div style={styles.cardFooter}>
+                  <span style={styles.metadata}>Category: <strong>{t.category}</strong></span>
+                  <span style={styles.metadata}>Updated: <strong>{formatDate(t.updatedAt)}</strong></span>
                 </div>
               </div>
-              <div style={styles.cardFooter}>
-                <span style={styles.metadata}>Category: <strong>{t.category}</strong></span>
-                <span style={styles.metadata}>Updated: <strong>{formatDate(t.updatedAt)}</strong></span>
+            ))}
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div style={styles.pagination}>
+                <button
+                  onClick={() => onPageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="btn btn-secondary"
+                  style={styles.pageBtn}
+                >
+                  Previous
+                </button>
+                <span style={styles.pageInfo}>
+                  Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong> (Total: {totalItems} requests)
+                </span>
+                <button
+                  onClick={() => onPageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="btn btn-secondary"
+                  style={styles.pageBtn}
+                >
+                  Next
+                </button>
               </div>
-            </div>
-          ))
+            )}
+          </>
         )}
       </div>
     </div>
@@ -300,5 +316,20 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     gap: '1rem',
     marginBottom: '1.5rem',
+  },
+  pagination: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '1.5rem',
+    marginTop: '2rem',
+    flexWrap: 'wrap',
+  },
+  pageInfo: {
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text-muted)',
+  },
+  pageBtn: {
+    minWidth: '90px',
   }
 };

@@ -2,13 +2,21 @@ import React from 'react';
 import { type Ticket } from '../../types';
 
 interface SummaryCardsProps {
-  tickets: Ticket[];
+  tickets?: Ticket[];
+  activeCountVal?: number;
+  pendingCountVal?: number;
+  resolvedCountVal?: number;
 }
 
-export const SummaryCards: React.FC<SummaryCardsProps> = ({ tickets }) => {
-  const activeCount = tickets.filter(t => t.status === 'requires_attention' || t.status === 'under_investigation').length;
-  const pendingCount = tickets.filter(t => t.status === 'pending_customer').length;
-  const resolvedCount = tickets.filter(t => t.status === 'resolved').length;
+export const SummaryCards: React.FC<SummaryCardsProps> = ({ 
+  tickets = [], 
+  activeCountVal, 
+  pendingCountVal, 
+  resolvedCountVal 
+}) => {
+  const activeCount = activeCountVal !== undefined ? activeCountVal : tickets.filter(t => t.status === 'requires_attention' || t.status === 'under_investigation').length;
+  const pendingCount = pendingCountVal !== undefined ? pendingCountVal : tickets.filter(t => t.status === 'pending_customer').length;
+  const resolvedCount = resolvedCountVal !== undefined ? resolvedCountVal : tickets.filter(t => t.status === 'resolved').length;
 
   return (
     <div style={styles.grid}>
