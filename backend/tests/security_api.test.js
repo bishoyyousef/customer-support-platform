@@ -354,4 +354,63 @@ describe('Backend Security & Business Rules API Test Suite', () => {
       assert.ok(wA >= wB, `Ticket at ${i} urgency should be >= ticket at ${i+1}`);
     }
   });
+
+  // 6. Attachment Upload, Download, and Security Tests (Phase 2)
+  test('POST /api/tickets/:id/attachments uploads a file successfully and GET /api/attachments/:id downloads it', async () => {
+    const formData = new FormData();
+    formData.append('file', new Blob(['hello world attachment'], { type: 'text/plain' }), 'hello.txt');
+
+    // 1. Alice uploads to TKT-1001
+    const uploadRes = await fetch(`${BASE_URL}/tickets/TKT-1001/attachments`, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer mock-jwt-token-for-alice'
+      },
+      body: formData
+    });
+    assert.strictEqual(uploadRes.status, 201);
+    const msg = await uploadRes.json();
+    assert.ok(msg.attachment);
+    assert.strictEqual(msg.attachment.filename, 'hello.txt');
+    const attachmentId = msg.attachment.id;
+
+    // 2. Alice downloads attachment using query token
+    const downloadRes = await fetch(`${BASE_URL}/attachments/${attachmentId}?token=mock-jwt-token-for-alice`);
+    assert.strictEqual(downloadRes.status, 200);
+    const text = await downloadRes.text();
+    assert.strictEqual(text, 'hello world attachment');
+
+    // 3. Bob attempts to download Alice's attachment -> 403 Forbidden
+    const bobDownloadRes = await fetch(`${BASE_URL}/attachments/${attachmentId}?token=mock-jwt-token-for-bob`);
+    assert.strictEqual(bobDownloadRes.status, 403);
+  });
+
+  test('POST /api/tickets/:id/attachments returns 403 Forbidden for non-owner customer', async () => {
+    const formData = new FormData();
+    formData.append('file', new Blob(['unauthorized upload'], { type: 'text/plain' }), 'hack.txt');
+
+    // Bob tries to upload to Alice's TKT-1001
+    const res = await fetch(`${BASE_URL}/tickets/TKT-1001/attachments`, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer mock-jwt-token-for-bob'
+      },
+      body: formData
+    });
+    assert.strictEqual(res.status, 403);
+  });
+
+  test('POST /api/tickets/:id/attachments returns 400 for invalid file extensions', async () => {
+    const formData = new FormData();
+    formData.append('file', new Blob(['executable code'], { type: 'application/octet-stream' }), 'malicious.exe');
+
+    const res = await fetch(`${BASE_URL}/tickets/TKT-1001/attachments`, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer mock-jwt-token-for-alice'
+      },
+      body: formData
+    });
+    assert.strictEqual(res.status, 400);
+  });
 });
