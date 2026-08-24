@@ -158,13 +158,109 @@ app.get('/api/tickets', authenticate, (req, res) => {
     userTickets = db.tickets;
   }
 
+  let tickets = [...userTickets];
+
+  // A. Filter by Queue (attention, mine, all)
+  const queue = req.query.queue || 'all';
+  if (queue === 'attention') {
+    tickets = tickets.filter(t => !t.assignedTo || t.status === 'requires_attention');
+  } else if (queue === 'mine') {
+    tickets = tickets.filter(t => t.assignedTo === req.user.id);
+  }
+
+  // B. Filter by Status (comma-separated list)
+  if (req.query.status) {
+    const statuses = req.query.status.split(',');
+    tickets = tickets.filter(t => statuses.includes(t.status));
+  }
+
+  // C. Filter by Category
+  if (req.query.category && req.query.category !== 'All') {
+    tickets = tickets.filter(t => t.category === req.query.category);
+  }
+
+  // D. Filter by AssignedTo
+  if (req.query.assignedTo) {
+    if (req.query.assignedTo === 'unassigned') {
+      tickets = tickets.filter(t => !t.assignedTo);
+    } else {
+      tickets = tickets.filter(t => t.assignedTo === req.query.assignedTo);
+    }
+  }
+
+  // E. Filter by Search (substring match on id, title, description, customerName)
+  if (req.query.search) {
+    const q = req.query.search.toLowerCase().trim();
+    tickets = tickets.filter(t => 
+      t.id.toLowerCase().includes(q) || 
+      t.title.toLowerCase().includes(q) || 
+      (t.description && t.description.toLowerCase().includes(q)) ||
+      t.customerName.toLowerCase().includes(q)
+    );
+  }
+
+  // F. Sort
+  const sort = req.query.sort || 'updatedAt';
+  const order = req.query.order || 'desc';
+  tickets.sort((a, b) => {
+    let comparison = 0;
+    if (sort === 'urgency') {
+      const urgencyWeight = { 'High': 3, 'Medium': 2, 'Low': 1 };
+      const weightA = urgencyWeight[a.urgency] || 0;
+      const weightB = urgencyWeight[b.urgency] || 0;
+      comparison = weightA - weightB;
+    } else if (sort === 'createdAt' || sort === 'updatedAt') {
+      comparison = new Date(a[sort]) - new Date(b[sort]);
+    } else {
+      const valA = String(a[sort] || '').toLowerCase();
+      const valB = String(b[sort] || '').toLowerCase();
+      comparison = valA.localeCompare(valB);
+    }
+    
+    let resVal = order === 'desc' ? -comparison : comparison;
+    
+    // Tie-breaker: sort by updatedAt desc
+    if (resVal === 0) {
+      resVal = new Date(b.updatedAt) - new Date(a.updatedAt);
+    }
+    return resVal;
+  });
+
+  // Calculate totals on full scoped userTickets dataset (before search/filter/pagination)
+  const activeCount = userTickets.filter(t => t.status === 'requires_attention' || t.status === 'under_investigation').length;
+  const pendingCount = userTickets.filter(t => t.status === 'pending_customer').length;
+  const resolvedCount = userTickets.filter(t => t.status === 'resolved').length;
+
+  // G. Pagination
+  const totalItems = tickets.length;
+  const isPaginationRequested = req.query.page !== undefined || req.query.limit !== undefined;
+  
+  const page = isPaginationRequested ? Math.max(1, parseInt(req.query.page, 10) || 1) : 1;
+  const limit = isPaginationRequested ? Math.max(1, Math.min(100, parseInt(req.query.limit, 10) || 20)) : totalItems;
+  const totalPages = Math.ceil(totalItems / limit);
+
+  // H. Slicing
+  const startIdx = (page - 1) * limit;
+  const slicedTickets = tickets.slice(startIdx, startIdx + limit);
+
   // Format response to exclude full message threads and internal notes in summary list
-  const formattedTickets = userTickets.map(t => {
+  const formattedTickets = slicedTickets.map(t => {
     const summary = { ...t };
     delete summary.messages;
     delete summary.activityTimeline;
     return summary;
   });
+
+  // Set Pagination Headers
+  res.setHeader('X-Pagination-Page', page);
+  res.setHeader('X-Pagination-Limit', limit);
+  res.setHeader('X-Pagination-Total-Count', totalItems);
+  res.setHeader('X-Pagination-Total-Pages', totalPages);
+  res.setHeader('X-Pagination-Active-Count', activeCount);
+  res.setHeader('X-Pagination-Pending-Count', pendingCount);
+  res.setHeader('X-Pagination-Resolved-Count', resolvedCount);
+  
+  res.setHeader('Access-Control-Expose-Headers', 'X-Pagination-Page, X-Pagination-Limit, X-Pagination-Total-Count, X-Pagination-Total-Pages, X-Pagination-Active-Count, X-Pagination-Pending-Count, X-Pagination-Resolved-Count');
 
   return res.status(200).json(formattedTickets);
 });

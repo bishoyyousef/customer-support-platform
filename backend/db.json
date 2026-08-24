@@ -48,14 +48,14 @@
       "description": "I tried to subscribe to premium, but checkout failed while still charging my card. Please reverse the second charge of $49.",
       "category": "Billing",
       "urgency": "High",
-      "status": "requires_attention",
+      "status": "pending_customer",
       "customerId": "cust_1",
       "customerName": "Alice Johnson",
-      "assignedTo": "agent_1",
-      "assignedName": "Charlie Davis",
+      "assignedTo": "mgr_1",
+      "assignedName": "Eve Foster",
       "createdAt": "2026-08-03T10:00:00.000Z",
-      "updatedAt": "2026-08-03T18:50:08.307Z",
-      "resolutionSummary": null,
+      "updatedAt": "2026-08-21T15:27:43.839Z",
+      "resolutionSummary": "jjjjjjjjjj",
       "activityTimeline": [
         {
           "type": "creation",
@@ -80,6 +80,78 @@
           "message": "Charlie Davis recorded an internal team note",
           "timestamp": "2026-08-03T18:50:08.307Z",
           "actorName": "Charlie Davis"
+        },
+        {
+          "type": "status_change",
+          "message": "Status updated from 'requires_attention' to 'under_investigation' by Eve Foster",
+          "timestamp": "2026-08-21T15:25:18.467Z",
+          "actorName": "Eve Foster"
+        },
+        {
+          "type": "assignment",
+          "message": "Assignment changed from 'Charlie Davis' to 'Eve Foster' by Eve Foster",
+          "timestamp": "2026-08-21T15:25:38.227Z",
+          "actorName": "Eve Foster"
+        },
+        {
+          "type": "reply",
+          "message": "Eve Foster added a reply",
+          "timestamp": "2026-08-21T15:25:38.445Z",
+          "actorName": "Eve Foster"
+        },
+        {
+          "type": "reply",
+          "message": "Alice Johnson added a reply",
+          "timestamp": "2026-08-21T15:26:37.213Z",
+          "actorName": "Alice Johnson"
+        },
+        {
+          "type": "status_change",
+          "message": "Status reverted from 'under_investigation' to 'requires_attention' automatically by system due to customer response",
+          "timestamp": "2026-08-21T15:26:37.213Z",
+          "actorName": "System"
+        },
+        {
+          "type": "assignment",
+          "message": "Assignment changed from 'Eve Foster' to 'Unassigned' by Eve Foster",
+          "timestamp": "2026-08-21T15:26:48.294Z",
+          "actorName": "Eve Foster"
+        },
+        {
+          "type": "assignment",
+          "message": "Assignment changed from 'Unassigned' to 'Eve Foster' by Eve Foster",
+          "timestamp": "2026-08-21T15:26:51.511Z",
+          "actorName": "Eve Foster"
+        },
+        {
+          "type": "status_change",
+          "message": "Status updated from 'requires_attention' to 'resolved' by Eve Foster",
+          "timestamp": "2026-08-21T15:27:07.021Z",
+          "actorName": "Eve Foster"
+        },
+        {
+          "type": "status_change",
+          "message": "Status updated from 'resolved' to 'requires_attention' by Alice Johnson",
+          "timestamp": "2026-08-21T15:27:12.571Z",
+          "actorName": "Alice Johnson"
+        },
+        {
+          "type": "reply",
+          "message": "Alice Johnson added a reply",
+          "timestamp": "2026-08-21T15:27:22.667Z",
+          "actorName": "Alice Johnson"
+        },
+        {
+          "type": "status_change",
+          "message": "Status updated from 'requires_attention' to 'pending_customer' by Eve Foster",
+          "timestamp": "2026-08-21T15:27:33.036Z",
+          "actorName": "Eve Foster"
+        },
+        {
+          "type": "note",
+          "message": "Eve Foster recorded an internal team note",
+          "timestamp": "2026-08-21T15:27:43.839Z",
+          "actorName": "Eve Foster"
         }
       ],
       "messages": [
@@ -126,6 +198,42 @@
           "senderRole": "agent",
           "content": "Agent check log 999",
           "timestamp": "2026-08-03T18:50:08.307Z",
+          "isInternal": true
+        },
+        {
+          "id": "msg_1787325938445",
+          "senderId": "mgr_1",
+          "senderName": "Eve Foster",
+          "senderRole": "manager",
+          "content": "hi",
+          "timestamp": "2026-08-21T15:25:38.445Z",
+          "isInternal": false
+        },
+        {
+          "id": "msg_1787325997213",
+          "senderId": "cust_1",
+          "senderName": "Alice Johnson",
+          "senderRole": "customer",
+          "content": "hello",
+          "timestamp": "2026-08-21T15:26:37.213Z",
+          "isInternal": false
+        },
+        {
+          "id": "msg_1787326042667",
+          "senderId": "cust_1",
+          "senderName": "Alice Johnson",
+          "senderRole": "customer",
+          "content": "it happened again",
+          "timestamp": "2026-08-21T15:27:22.667Z",
+          "isInternal": false
+        },
+        {
+          "id": "msg_1787326063839",
+          "senderId": "mgr_1",
+          "senderName": "Eve Foster",
+          "senderRole": "manager",
+          "content": "1233",
+          "timestamp": "2026-08-21T15:27:43.839Z",
           "isInternal": true
         }
       ]
@@ -353,12 +461,19 @@
       "status": "requires_attention",
       "customerId": "cust_1",
       "customerName": "Alice Johnson",
-      "assignedTo": null,
-      "assignedName": null,
+      "assignedTo": "mgr_1",
+      "assignedName": "Eve Foster",
       "createdAt": "2026-08-15T20:34:55.217Z",
-      "updatedAt": "2026-08-15T20:34:55.217Z",
+      "updatedAt": "2026-08-17T18:13:32.719Z",
       "resolutionSummary": null,
-      "activityTimeline": [],
+      "activityTimeline": [
+        {
+          "type": "assignment",
+          "message": "Assignment changed from 'Unassigned' to 'Eve Foster' by Eve Foster",
+          "timestamp": "2026-08-17T18:13:32.719Z",
+          "actorName": "Eve Foster"
+        }
+      ],
       "messages": []
     },
     {
@@ -367,16 +482,72 @@
       "description": "This is a load test ticket data to check concurrent transactions.",
       "category": "Technical",
       "urgency": "Low",
-      "status": "requires_attention",
+      "status": "resolved",
       "customerId": "cust_1",
       "customerName": "Alice Johnson",
-      "assignedTo": null,
-      "assignedName": null,
+      "assignedTo": "agent_1",
+      "assignedName": "Charlie Davis",
       "createdAt": "2026-08-15T20:34:55.224Z",
-      "updatedAt": "2026-08-15T20:34:55.224Z",
-      "resolutionSummary": null,
-      "activityTimeline": [],
-      "messages": []
+      "updatedAt": "2026-08-17T18:12:12.245Z",
+      "resolutionSummary": "it is solved",
+      "activityTimeline": [
+        {
+          "type": "reply",
+          "message": "Alice Johnson added a reply",
+          "timestamp": "2026-08-17T18:10:38.534Z",
+          "actorName": "Alice Johnson"
+        },
+        {
+          "type": "assignment",
+          "message": "Assignment changed from 'Unassigned' to 'Charlie Davis' by Charlie Davis",
+          "timestamp": "2026-08-17T18:11:20.864Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "status_change",
+          "message": "Status updated from 'requires_attention' to 'pending_customer' by Charlie Davis",
+          "timestamp": "2026-08-17T18:11:31.606Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "reply",
+          "message": "Alice Johnson added a reply",
+          "timestamp": "2026-08-17T18:11:55.664Z",
+          "actorName": "Alice Johnson"
+        },
+        {
+          "type": "status_change",
+          "message": "Status reverted from 'pending_customer' to 'requires_attention' automatically by system due to customer response",
+          "timestamp": "2026-08-17T18:11:55.664Z",
+          "actorName": "System"
+        },
+        {
+          "type": "status_change",
+          "message": "Status updated from 'requires_attention' to 'resolved' by Charlie Davis",
+          "timestamp": "2026-08-17T18:12:12.245Z",
+          "actorName": "Charlie Davis"
+        }
+      ],
+      "messages": [
+        {
+          "id": "msg_1786990238534",
+          "senderId": "cust_1",
+          "senderName": "Alice Johnson",
+          "senderRole": "customer",
+          "content": "ticket",
+          "timestamp": "2026-08-17T18:10:38.534Z",
+          "isInternal": false
+        },
+        {
+          "id": "msg_1786990315664",
+          "senderId": "cust_1",
+          "senderName": "Alice Johnson",
+          "senderRole": "customer",
+          "content": "ok",
+          "timestamp": "2026-08-17T18:11:55.664Z",
+          "isInternal": false
+        }
+      ]
     },
     {
       "id": "TEST-29-1786826095228",
@@ -404,12 +575,19 @@
       "status": "requires_attention",
       "customerId": "cust_1",
       "customerName": "Alice Johnson",
-      "assignedTo": null,
-      "assignedName": null,
+      "assignedTo": "mgr_1",
+      "assignedName": "Eve Foster",
       "createdAt": "2026-08-15T20:34:55.232Z",
-      "updatedAt": "2026-08-15T20:34:55.232Z",
+      "updatedAt": "2026-08-21T15:28:40.616Z",
       "resolutionSummary": null,
-      "activityTimeline": [],
+      "activityTimeline": [
+        {
+          "type": "assignment",
+          "message": "Assignment changed from 'Unassigned' to 'Eve Foster' by Eve Foster",
+          "timestamp": "2026-08-21T15:28:40.616Z",
+          "actorName": "Eve Foster"
+        }
+      ],
       "messages": []
     },
     {
@@ -452,16 +630,339 @@
       "description": "This is a load test ticket data to check concurrent transactions.",
       "category": "Technical",
       "urgency": "Low",
+      "status": "resolved",
+      "customerId": "cust_1",
+      "customerName": "Alice Johnson",
+      "assignedTo": "agent_1",
+      "assignedName": "Charlie Davis",
+      "createdAt": "2026-08-15T20:34:55.247Z",
+      "updatedAt": "2026-08-17T17:59:34.995Z",
+      "resolutionSummary": "i tried to do \n1\n2\n3\n.......",
+      "activityTimeline": [
+        {
+          "type": "assignment",
+          "message": "Assignment changed from 'Unassigned' to 'Charlie Davis' by Charlie Davis",
+          "timestamp": "2026-08-17T17:57:26.214Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "status_change",
+          "message": "Status updated from 'requires_attention' to 'under_investigation' by Charlie Davis",
+          "timestamp": "2026-08-17T17:57:48.286Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "status_change",
+          "message": "Status updated from 'under_investigation' to 'pending_customer' by Charlie Davis",
+          "timestamp": "2026-08-17T17:58:00.192Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "status_change",
+          "message": "Status updated from 'pending_customer' to 'under_investigation' by Charlie Davis",
+          "timestamp": "2026-08-17T17:58:21.325Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "reply",
+          "message": "Charlie Davis added a reply",
+          "timestamp": "2026-08-17T17:58:37.881Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "note",
+          "message": "Charlie Davis recorded an internal team note",
+          "timestamp": "2026-08-17T17:59:02.663Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "status_change",
+          "message": "Status updated from 'under_investigation' to 'pending_customer' by Charlie Davis",
+          "timestamp": "2026-08-17T17:59:08.595Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "status_change",
+          "message": "Status updated from 'pending_customer' to 'resolved' by Charlie Davis",
+          "timestamp": "2026-08-17T17:59:34.995Z",
+          "actorName": "Charlie Davis"
+        }
+      ],
+      "messages": [
+        {
+          "id": "msg_1786989517881",
+          "senderId": "agent_1",
+          "senderName": "Charlie Davis",
+          "senderRole": "agent",
+          "content": "try again",
+          "timestamp": "2026-08-17T17:58:37.881Z",
+          "isInternal": false
+        },
+        {
+          "id": "msg_1786989542663",
+          "senderId": "agent_1",
+          "senderName": "Charlie Davis",
+          "senderRole": "agent",
+          "content": "needs escelation",
+          "timestamp": "2026-08-17T17:59:02.663Z",
+          "isInternal": true
+        }
+      ]
+    },
+    {
+      "id": "TKT-1797",
+      "title": "password reset",
+      "description": "i can't reset my password",
+      "category": "Technical",
+      "urgency": "Low",
       "status": "requires_attention",
       "customerId": "cust_1",
       "customerName": "Alice Johnson",
       "assignedTo": null,
       "assignedName": null,
-      "createdAt": "2026-08-15T20:34:55.247Z",
-      "updatedAt": "2026-08-15T20:34:55.247Z",
+      "createdAt": "2026-08-17T18:04:03.218Z",
+      "updatedAt": "2026-08-17T18:04:03.218Z",
       "resolutionSummary": null,
-      "activityTimeline": [],
-      "messages": []
+      "activityTimeline": [
+        {
+          "type": "creation",
+          "message": "Ticket created by Alice Johnson",
+          "timestamp": "2026-08-17T18:04:03.218Z",
+          "actorName": "Alice Johnson"
+        }
+      ],
+      "messages": [
+        {
+          "id": "msg_1786989843218",
+          "senderId": "cust_1",
+          "senderName": "Alice Johnson",
+          "senderRole": "customer",
+          "content": "i can't reset my password",
+          "timestamp": "2026-08-17T18:04:03.218Z",
+          "isInternal": false
+        }
+      ]
+    },
+    {
+      "id": "TKT-4000",
+      "title": "change password",
+      "description": "i can't change my password",
+      "category": "Technical",
+      "urgency": "Medium",
+      "status": "resolved",
+      "customerId": "cust_1",
+      "customerName": "Alice Johnson",
+      "assignedTo": "agent_1",
+      "assignedName": "Charlie Davis",
+      "createdAt": "2026-08-17T18:05:03.464Z",
+      "updatedAt": "2026-08-17T18:09:38.620Z",
+      "resolutionSummary": "i solved it",
+      "activityTimeline": [
+        {
+          "type": "creation",
+          "message": "Ticket created by Alice Johnson",
+          "timestamp": "2026-08-17T18:05:03.464Z",
+          "actorName": "Alice Johnson"
+        },
+        {
+          "type": "assignment",
+          "message": "Assignment changed from 'Unassigned' to 'Charlie Davis' by Charlie Davis",
+          "timestamp": "2026-08-17T18:05:41.107Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "status_change",
+          "message": "Status updated from 'requires_attention' to 'under_investigation' by Charlie Davis",
+          "timestamp": "2026-08-17T18:05:43.327Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "reply",
+          "message": "Charlie Davis added a reply",
+          "timestamp": "2026-08-17T18:05:59.128Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "reply",
+          "message": "Alice Johnson added a reply",
+          "timestamp": "2026-08-17T18:06:25.090Z",
+          "actorName": "Alice Johnson"
+        },
+        {
+          "type": "status_change",
+          "message": "Status reverted from 'under_investigation' to 'requires_attention' automatically by system due to customer response",
+          "timestamp": "2026-08-17T18:06:25.090Z",
+          "actorName": "System"
+        },
+        {
+          "type": "note",
+          "message": "Charlie Davis recorded an internal team note",
+          "timestamp": "2026-08-17T18:06:56.370Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "reply",
+          "message": "Charlie Davis added a reply",
+          "timestamp": "2026-08-17T18:07:28.003Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "reply",
+          "message": "Alice Johnson added a reply",
+          "timestamp": "2026-08-17T18:07:43.008Z",
+          "actorName": "Alice Johnson"
+        },
+        {
+          "type": "status_change",
+          "message": "Status updated from 'requires_attention' to 'pending_customer' by Charlie Davis",
+          "timestamp": "2026-08-17T18:07:50.286Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "status_change",
+          "message": "Status updated from 'pending_customer' to 'resolved' by Charlie Davis",
+          "timestamp": "2026-08-17T18:08:21.405Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "status_change",
+          "message": "Status updated from 'resolved' to 'requires_attention' by Alice Johnson",
+          "timestamp": "2026-08-17T18:08:46.352Z",
+          "actorName": "Alice Johnson"
+        },
+        {
+          "type": "reply",
+          "message": "Alice Johnson added a reply",
+          "timestamp": "2026-08-17T18:08:57.867Z",
+          "actorName": "Alice Johnson"
+        },
+        {
+          "type": "status_change",
+          "message": "Status updated from 'requires_attention' to 'under_investigation' by Charlie Davis",
+          "timestamp": "2026-08-17T18:09:03.500Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "reply",
+          "message": "Charlie Davis added a reply",
+          "timestamp": "2026-08-17T18:09:17.528Z",
+          "actorName": "Charlie Davis"
+        },
+        {
+          "type": "status_change",
+          "message": "Status updated from 'under_investigation' to 'resolved' by Charlie Davis",
+          "timestamp": "2026-08-17T18:09:38.620Z",
+          "actorName": "Charlie Davis"
+        }
+      ],
+      "messages": [
+        {
+          "id": "msg_1786989903464",
+          "senderId": "cust_1",
+          "senderName": "Alice Johnson",
+          "senderRole": "customer",
+          "content": "i can't change my password",
+          "timestamp": "2026-08-17T18:05:03.464Z",
+          "isInternal": false
+        },
+        {
+          "id": "msg_1786989959128",
+          "senderId": "agent_1",
+          "senderName": "Charlie Davis",
+          "senderRole": "agent",
+          "content": "why",
+          "timestamp": "2026-08-17T18:05:59.128Z",
+          "isInternal": false
+        },
+        {
+          "id": "msg_1786989985090",
+          "senderId": "cust_1",
+          "senderName": "Alice Johnson",
+          "senderRole": "customer",
+          "content": "i don't know",
+          "timestamp": "2026-08-17T18:06:25.090Z",
+          "isInternal": false
+        },
+        {
+          "id": "msg_1786990016370",
+          "senderId": "agent_1",
+          "senderName": "Charlie Davis",
+          "senderRole": "agent",
+          "content": "try using different password",
+          "timestamp": "2026-08-17T18:06:56.370Z",
+          "isInternal": true
+        },
+        {
+          "id": "msg_1786990048003",
+          "senderId": "agent_1",
+          "senderName": "Charlie Davis",
+          "senderRole": "agent",
+          "content": "try using different password",
+          "timestamp": "2026-08-17T18:07:28.003Z",
+          "isInternal": false
+        },
+        {
+          "id": "msg_1786990063008",
+          "senderId": "cust_1",
+          "senderName": "Alice Johnson",
+          "senderRole": "customer",
+          "content": "ok its donee",
+          "timestamp": "2026-08-17T18:07:43.008Z",
+          "isInternal": false
+        },
+        {
+          "id": "msg_1786990137867",
+          "senderId": "cust_1",
+          "senderName": "Alice Johnson",
+          "senderRole": "customer",
+          "content": "i happened again",
+          "timestamp": "2026-08-17T18:08:57.867Z",
+          "isInternal": false
+        },
+        {
+          "id": "msg_1786990157528",
+          "senderId": "agent_1",
+          "senderName": "Charlie Davis",
+          "senderRole": "agent",
+          "content": "i solved the isuue",
+          "timestamp": "2026-08-17T18:09:17.528Z",
+          "isInternal": false
+        }
+      ]
+    },
+    {
+      "id": "TKT-1327",
+      "title": "password reset",
+      "description": "hfhhfhfhjjjjjjjj",
+      "category": "Billing",
+      "urgency": "Medium",
+      "status": "requires_attention",
+      "customerId": "cust_1",
+      "customerName": "Alice Johnson",
+      "assignedTo": null,
+      "assignedName": null,
+      "createdAt": "2026-08-21T15:30:26.377Z",
+      "updatedAt": "2026-08-21T15:30:26.377Z",
+      "resolutionSummary": null,
+      "activityTimeline": [
+        {
+          "type": "creation",
+          "message": "Ticket created by Alice Johnson",
+          "timestamp": "2026-08-21T15:30:26.377Z",
+          "actorName": "Alice Johnson"
+        }
+      ],
+      "messages": [
+        {
+          "id": "msg_1787326226377",
+          "senderId": "cust_1",
+          "senderName": "Alice Johnson",
+          "senderRole": "customer",
+          "content": "hfhhfhfhjjjjjjjj",
+          "timestamp": "2026-08-21T15:30:26.377Z",
+          "isInternal": false
+        }
+      ]
     }
   ]
 }

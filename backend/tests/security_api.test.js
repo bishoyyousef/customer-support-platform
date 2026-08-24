@@ -287,4 +287,71 @@ describe('Backend Security & Business Rules API Test Suite', () => {
     const ticket = await getRes.json();
     assert.strictEqual(ticket.status, 'requires_attention');
   });
+
+  // 5. Pagination, Search, Filter, and Sort Tests (Phase 1)
+  test('GET /api/tickets?page=1&limit=2 returns pagination headers and at most 2 tickets', async () => {
+    const res = await fetch(`${BASE_URL}/tickets?page=1&limit=2`, {
+      headers: { 'Authorization': 'Bearer mock-jwt-token-for-agent_charlie' }
+    });
+    assert.strictEqual(res.status, 200);
+    const tickets = await res.json();
+    assert.ok(Array.isArray(tickets));
+    assert.ok(tickets.length <= 2);
+    
+    assert.strictEqual(res.headers.get('x-pagination-page'), '1');
+    assert.strictEqual(res.headers.get('x-pagination-limit'), '2');
+    assert.ok(res.headers.get('x-pagination-total-count'));
+    assert.ok(res.headers.get('x-pagination-total-pages'));
+  });
+
+  test('GET /api/tickets?search=alice filters by customerName or title', async () => {
+    const res = await fetch(`${BASE_URL}/tickets?search=alice`, {
+      headers: { 'Authorization': 'Bearer mock-jwt-token-for-agent_charlie' }
+    });
+    assert.strictEqual(res.status, 200);
+    const tickets = await res.json();
+    assert.ok(tickets.length > 0);
+    tickets.forEach(t => {
+      const matchName = t.customerName.toLowerCase().includes('alice');
+      const matchTitle = t.title.toLowerCase().includes('alice');
+      const matchId = t.id.toLowerCase().includes('alice');
+      assert.ok(matchName || matchTitle || matchId);
+    });
+  });
+
+  test('GET /api/tickets?category=Technical filters by category', async () => {
+    const res = await fetch(`${BASE_URL}/tickets?category=Technical`, {
+      headers: { 'Authorization': 'Bearer mock-jwt-token-for-agent_charlie' }
+    });
+    assert.strictEqual(res.status, 200);
+    const tickets = await res.json();
+    tickets.forEach(t => {
+      assert.strictEqual(t.category, 'Technical');
+    });
+  });
+
+  test('GET /api/tickets?queue=attention filters unassigned/attention tickets', async () => {
+    const res = await fetch(`${BASE_URL}/tickets?queue=attention`, {
+      headers: { 'Authorization': 'Bearer mock-jwt-token-for-agent_charlie' }
+    });
+    assert.strictEqual(res.status, 200);
+    const tickets = await res.json();
+    tickets.forEach(t => {
+      assert.ok(!t.assignedTo || t.status === 'requires_attention');
+    });
+  });
+
+  test('GET /api/tickets?sort=urgency&order=desc sorts High urgency first', async () => {
+    const res = await fetch(`${BASE_URL}/tickets?sort=urgency&order=desc`, {
+      headers: { 'Authorization': 'Bearer mock-jwt-token-for-agent_charlie' }
+    });
+    assert.strictEqual(res.status, 200);
+    const tickets = await res.json();
+    const urgencyWeight = { 'High': 3, 'Medium': 2, 'Low': 1 };
+    for (let i = 0; i < tickets.length - 1; i++) {
+      const wA = urgencyWeight[tickets[i].urgency] || 0;
+      const wB = urgencyWeight[tickets[i+1].urgency] || 0;
+      assert.ok(wA >= wB, `Ticket at ${i} urgency should be >= ticket at ${i+1}`);
+    }
+  });
 });
