@@ -12,6 +12,42 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Flat-file persistence engine helpers
+const multer = require('multer');
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR);
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, UPLOADS_DIR);
+  },
+  filename: (req, file, cb) => {
+    const uniqueId = `att_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const safeName = path.basename(file.originalname).replace(/[^a-zA-Z0-9.\-_]/g, '');
+    cb(null, `${uniqueId}_${safeName}`);
+  }
+});
+
+const allowedMimeTypes = [
+  'image/png', 'image/jpeg', 'image/jpg', 'image/gif',
+  'application/pdf', 'text/plain', 'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'text/csv'
+];
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    if (allowedMimeTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only standard documents and images are allowed.'));
+    }
+  }
+});
 function readDb() {
   try {
     const data = fs.readFileSync(DB_PATH, 'utf8');
@@ -35,12 +71,18 @@ function writeDb(data) {
 
 // Authentication Context Middleware
 function authenticate(req, res, next) {
+  let token = null;
   const authHeader = req.headers['authorization'] || req.headers['Authorization'];
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Unauthorized: Missing or invalid token format' });
+  
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7);
+  } else if (req.query.token) {
+    token = req.query.token;
   }
 
-  const token = authHeader.substring(7);
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized: Missing or invalid token' });
+  }
   const db = readDb();
   
   // Resolve profile via mock tokens
@@ -544,6 +586,117 @@ app.post('/api/tickets/:id/notes', authenticate, (req, res) => {
   writeDb(db);
 
   return res.status(200).json(newNote);
+});
+
+// 8. Ticket Routing: Post attachment (Any authenticated user in conversation)
+app.post('/api/tickets/:id/attachments', authenticate, (req, res) => {
+  const db = readDb();
+  const ticketIndex = db.tickets.findIndex(t => t.id === req.params.id);
+
+  if (ticketIndex === -1) {
+    return res.status(404).json({ message: 'Ticket not found' });
+  }
+
+  const ticket = db.tickets[ticketIndex];
+
+  if (req.user.role === 'customer' && ticket.customerId !== req.user.id) {
+    return res.status(403).json({ message: 'Forbidden: You do not have access to this ticket' });
+  }
+
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message || 'File upload failed' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const now = new Date().toISOString();
+    const isInternal = req.query.isInternal === 'true' && req.user.role !== 'customer';
+    const attachmentId = `att_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+
+    const newMessage = {
+      id: `msg_${Date.now()}`,
+      senderId: req.user.id,
+      senderName: req.user.name,
+      senderRole: req.user.role,
+      content: `[Attachment: ${req.file.originalname}]`,
+      timestamp: now,
+      isInternal,
+      attachment: {
+        id: attachmentId,
+        filename: req.file.originalname,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+        storagePath: req.file.filename
+      }
+    };
+
+    ticket.messages.push(newMessage);
+    
+    ticket.activityTimeline.push({
+      type: isInternal ? 'note' : 'reply',
+      message: `${req.user.name} uploaded an attachment: ${req.file.originalname}`,
+      timestamp: now,
+      actorName: req.user.name
+    });
+
+    if (req.user.role === 'customer' && !isInternal && ticket.status !== 'requires_attention') {
+      const oldStatus = ticket.status;
+      ticket.status = 'requires_attention';
+      ticket.activityTimeline.push({
+        type: 'status_change',
+        message: `Status reverted from '${oldStatus}' to 'requires_attention' automatically by system due to customer attachment`,
+        timestamp: now,
+        actorName: 'System'
+      });
+    }
+
+    ticket.updatedAt = now;
+    db.tickets[ticketIndex] = ticket;
+    writeDb(db);
+
+    return res.status(201).json(newMessage);
+  });
+});
+
+// 9. Ticket Routing: Download attachment (Scoped access)
+app.get('/api/attachments/:attachmentId', authenticate, (req, res) => {
+  const db = readDb();
+  let foundTicket = null;
+  let foundMessage = null;
+
+  for (const ticket of db.tickets) {
+    const msg = ticket.messages.find(m => m.attachment && m.attachment.id === req.params.attachmentId);
+    if (msg) {
+      foundTicket = ticket;
+      foundMessage = msg;
+      break;
+    }
+  }
+
+  if (!foundTicket || !foundMessage) {
+    return res.status(404).json({ message: 'Attachment not found' });
+  }
+
+  if (req.user.role === 'customer') {
+    if (foundTicket.customerId !== req.user.id) {
+      return res.status(403).json({ message: 'Forbidden: You do not have access to this ticket' });
+    }
+    if (foundMessage.isInternal) {
+      return res.status(403).json({ message: 'Forbidden: You do not have access to this internal note attachment' });
+    }
+  }
+
+  const filePath = path.join(UPLOADS_DIR, foundMessage.attachment.storagePath);
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ message: 'Attachment file not found on disk' });
+  }
+
+  res.setHeader('Content-Type', foundMessage.attachment.mimeType);
+  res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(foundMessage.attachment.filename)}"`);
+  return res.sendFile(filePath);
 });
 
 app.listen(PORT, () => {
