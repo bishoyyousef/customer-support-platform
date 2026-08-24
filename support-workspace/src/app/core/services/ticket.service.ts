@@ -97,4 +97,10 @@ export class TicketService {
       })
     );
   }
+
+  uploadAttachment(ticketId: string, file: File, isInternal = false): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<any>(`${this.apiUrl}/${ticketId}/attachments?isInternal=${isInternal}`, formData);
+  }
 }

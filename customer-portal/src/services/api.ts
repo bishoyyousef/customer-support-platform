@@ -130,5 +130,14 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ content }),
     });
+  },
+
+  uploadAttachment: async (ticketId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return request<any>(`tickets/${ticketId}/attachments`, {
+      method: 'POST',
+      body: formData,
+    });
   }
 };

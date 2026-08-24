@@ -67,8 +67,21 @@ import { environment } from '../../../environments/environment';
                     ({{ item.data.senderRole | titlecase }})
                   </span>
                 </div>
-                <div class="msg-body">{{ item.data.content }}</div>
-                <div class="msg-time">{{ formatDate(item.data.timestamp) }}</div>
+                 <div class="msg-body">{{ item.data.content }}</div>
+                 <!-- Render attachments if present -->
+                 <div *ngIf="item.data.attachment" class="attachment-box" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-top: 0.25rem; background-color: var(--color-bg-base); padding: 0.375rem 0.625rem; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
+                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2">
+                     <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                   </svg>
+                   <a
+                     [href]="getAttachmentDownloadUrl(item.data.attachment.id)"
+                     target="_blank"
+                     style="font-size: var(--font-size-xs); color: var(--color-primary); text-decoration: none; font-weight: 500;"
+                   >
+                     {{ item.data.attachment.filename }} ({{ getAttachmentSizeKb(item.data.attachment.size) }} KB)
+                   </a>
+                 </div>
+                 <div class="msg-time">{{ formatDate(item.data.timestamp) }}</div>
               </div>
             </div>
           </div>
@@ -117,17 +130,36 @@ import { environment } from '../../../environments/environment';
                 [class.internal-textarea]="activeChannel === 'internal'"
               ></textarea>
               
-              <div class="composer-actions">
-                <button
-                  type="submit"
-                  class="btn"
-                  [class.btn-primary]="activeChannel === 'public'"
-                  [class.btn-warning]="activeChannel === 'internal'"
-                  [disabled]="isSubmitting || !composerText.trim()"
-                >
-                  {{ isSubmitting ? 'Posting...' : (activeChannel === 'public' ? 'Send Message' : 'Add Note') }}
-                </button>
-              </div>
+               <div class="composer-actions">
+                 <input
+                   type="file"
+                   #fileInput
+                   style="display: none;"
+                   (change)="handleFileUpload($event)"
+                   [disabled]="isSubmitting"
+                 />
+                 <button
+                   type="button"
+                   class="btn btn-secondary"
+                   (click)="fileInput.click()"
+                   [disabled]="isSubmitting"
+                   style="margin-right: 0.5rem; display: inline-flex; align-items: center; gap: 0.25rem;"
+                 >
+                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                     <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                   </svg>
+                   Attach File
+                 </button>
+                 <button
+                   type="submit"
+                   class="btn"
+                   [class.btn-primary]="activeChannel === 'public'"
+                   [class.btn-warning]="activeChannel === 'internal'"
+                   [disabled]="isSubmitting || !composerText.trim()"
+                 >
+                   {{ isSubmitting ? 'Posting...' : (activeChannel === 'public' ? 'Send Message' : 'Add Note') }}
+                 </button>
+               </div>
             </form>
           </div>
         </div>
@@ -950,6 +982,50 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
     } catch {
       return dateStr;
     }
+  }
+
+  getAttachmentDownloadUrl(attachmentId: string): string {
+    const token = localStorage.getItem('support_platform_token') || '';
+    return `${environment.apiUrl}/attachments/${attachmentId}?token=${token}`;
+  }
+
+  getAttachmentSizeKb(size: number): number {
+    return Math.round(size / 1024);
+  }
+
+  handleFileUpload(event: Event): void {
+    const element = event.target as HTMLInputElement;
+    const file = element.files?.[0];
+    if (!file || !this.ticket) return;
+
+    const allowedExtensions = ['png', 'jpg', 'jpeg', 'gif', 'pdf', 'txt', 'doc', 'docx', 'csv'];
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (!ext || !allowedExtensions.includes(ext)) {
+      alert('Invalid file type. Only standard documents and images are allowed.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size exceeds the 5 MB limit.');
+      return;
+    }
+
+    this.isSubmitting = true;
+    const isInternal = this.activeChannel === 'internal';
+
+    this.ticketService.uploadAttachment(this.ticket.id, file, isInternal).subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.fetchDetails(this.ticket!.id);
+        this.ticketService.fetchTickets().subscribe();
+        element.value = '';
+      },
+      error: (err: any) => {
+        alert(err.error?.message || err.message || 'File upload failed.');
+        this.isSubmitting = false;
+        element.value = '';
+      }
+    });
   }
 }
 export default TicketDetailComponent;

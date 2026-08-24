@@ -6,7 +6,7 @@ import { type Ticket, type Message, type ActivityEvent } from '../../types';
 
 export const TicketDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -73,6 +73,34 @@ export const TicketDetails: React.FC = () => {
       alert(err.message || 'Failed to reopen ticket.');
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !id) return;
+
+    const allowedExtensions = ['png', 'jpg', 'jpeg', 'gif', 'pdf', 'txt', 'doc', 'docx', 'csv'];
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (!ext || !allowedExtensions.includes(ext)) {
+      alert('Invalid file type. Only standard documents and images are allowed.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size exceeds the 5 MB limit.');
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      await api.uploadAttachment(id, file);
+      await fetchDetails(false);
+    } catch (err: any) {
+      alert(err.message || 'File upload failed. Please try again.');
+    } finally {
+      setIsSending(false);
+      e.target.value = '';
     }
   };
 
@@ -181,6 +209,21 @@ export const TicketDetails: React.FC = () => {
                       >
                         <span style={styles.msgSender}>{isOwnMessage ? 'You' : msg.senderName}</span>
                         <div style={styles.msgText}>{msg.content}</div>
+                        {msg.attachment && (
+                          <div style={styles.attachmentContainer}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2" style={{ marginRight: '0.25rem' }}>
+                              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                            </svg>
+                            <a
+                              href={`http://localhost:5000/api/attachments/${msg.attachment.id}?token=${token}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={styles.attachmentLink}
+                            >
+                              {msg.attachment.filename} ({Math.round(msg.attachment.size / 1024)} KB)
+                            </a>
+                          </div>
+                        )}
                         <span style={styles.msgTime}>{formatDate(msg.timestamp)}</span>
                       </div>
                     </div>
@@ -216,6 +259,23 @@ export const TicketDetails: React.FC = () => {
                     style={{ resize: 'none' }}
                   />
                   <div style={styles.composerActions}>
+                    <input
+                      type="file"
+                      id="file-upload"
+                      style={{ display: 'none' }}
+                      onChange={handleFileUpload}
+                      disabled={isSending}
+                    />
+                    <label
+                      htmlFor="file-upload"
+                      className="btn btn-secondary"
+                      style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', height: '36px', padding: '0 0.75rem' }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '0.25rem' }}>
+                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                      </svg>
+                      Attach File
+                    </label>
                     <button
                       type="submit"
                       className="btn btn-primary"
@@ -443,5 +503,22 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     padding: '3rem 1.5rem',
     textAlign: 'center',
+  },
+  attachmentContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    marginTop: '0.25rem',
+    marginBottom: '0.25rem',
+    backgroundColor: 'var(--color-bg-base)',
+    padding: '0.375rem 0.625rem',
+    borderRadius: 'var(--radius-sm)',
+    border: '1px solid var(--color-border)',
+    alignSelf: 'flex-start',
+  },
+  attachmentLink: {
+    fontSize: 'var(--font-size-xs)',
+    color: 'var(--color-primary)',
+    textDecoration: 'none',
+    fontWeight: '500',
   },
 };
