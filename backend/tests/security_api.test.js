@@ -33,12 +33,12 @@ async function isServerRunning(url) {
   }
 }
 
-async function waitForServer(port, retries = 30) {
+async function waitForServer(port, retries = 60) {
   for (let i = 0; i < retries; i++) {
     if (await isServerRunning(`http://localhost:${port}/`)) {
       return true;
     }
-    await new Promise(r => setTimeout(r, 200));
+    await new Promise(r => setTimeout(r, 500));
   }
   return false;
 }

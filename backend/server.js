@@ -3,22 +3,25 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
+
+const { connectDb } = require('./database/connection');
+const userRepository = require('./repositories/userRepository');
+const ticketRepository = require('./repositories/ticketRepository');
+const messageRepository = require('./repositories/messageRepository');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const DB_PATH = path.join(__dirname, 'db.json');
-
-app.use(cors());
-app.use(bodyParser.json());
-
-// Flat-file persistence engine helpers
-const multer = require('multer');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 
 if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR);
 }
 
+app.use(cors());
+app.use(bodyParser.json());
+
+// Multer Storage Configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, UPLOADS_DIR);
@@ -48,62 +51,46 @@ const upload = multer({
     }
   }
 });
-function readDb() {
+
+// Authentication Middleware
+async function authenticate(req, res, next) {
   try {
-    const data = fs.readFileSync(DB_PATH, 'utf8');
-    return JSON.parse(data);
+    let token = null;
+    const authHeader = req.headers['authorization'] || req.headers['Authorization'];
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    } else if (req.query.token) {
+      token = req.query.token;
+    }
+
+    if (!token) {
+      return res.status(401).json({ message: 'Unauthorized: Missing or invalid token' });
+    }
+    
+    let username = token;
+    if (token.startsWith('mock-jwt-token-for-')) {
+      username = token.replace('mock-jwt-token-for-', '');
+    }
+
+    const user = await userRepository.findByUsername(username);
+
+    if (!user) {
+      return res.status(401).json({ message: 'Unauthorized: Session invalid' });
+    }
+
+    // Strip password from req.user context
+    const safeUser = { ...user };
+    delete safeUser.password;
+
+    req.user = safeUser;
+    next();
   } catch (err) {
-    console.error("Database Read Error:", err);
-    return { users: [], tickets: [] };
+    next(err);
   }
 }
 
-function writeDb(data) {
-  try {
-    const tempPath = `${DB_PATH}.tmp`;
-    fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), 'utf8');
-    fs.renameSync(tempPath, DB_PATH);
-  } catch (err) {
-    console.error("Database Write Error:", err);
-    throw new Error("Persistence failed");
-  }
-}
-
-// Authentication Context Middleware
-function authenticate(req, res, next) {
-  let token = null;
-  const authHeader = req.headers['authorization'] || req.headers['Authorization'];
-  
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    token = authHeader.substring(7);
-  } else if (req.query.token) {
-    token = req.query.token;
-  }
-
-  if (!token) {
-    return res.status(401).json({ message: 'Unauthorized: Missing or invalid token' });
-  }
-  const db = readDb();
-  
-  // Resolve profile via mock tokens
-  let user;
-  if (token.startsWith('mock-jwt-token-for-')) {
-    const username = token.replace('mock-jwt-token-for-', '');
-    user = db.users.find(u => u.username === username);
-  } else {
-    // Direct username fallback for verification scripts
-    user = db.users.find(u => u.username === token);
-  }
-
-  if (!user) {
-    return res.status(401).json({ message: 'Unauthorized: Session invalid' });
-  }
-
-  req.user = user;
-  next();
-}
-
-// Data Validation Handlers
+// Validation helper
 function validateTicket(ticketData, isUpdate = false) {
   const errors = [];
   const categories = ['Billing', 'Technical', 'Account', 'Other'];
@@ -147,558 +134,482 @@ function validateTicket(ticketData, isUpdate = false) {
   };
 }
 
-// Root Health/Index endpoint
+// Health check endpoint
 app.get('/', (req, res) => {
   res.status(200).json({
     status: 'online',
-    message: 'Customer Support Platform Shared API Service',
-    docs: '/README.md',
-    endpoints: [
-      { method: 'POST', path: '/api/auth/login', desc: 'Agent/Customer Authentication' },
-      { method: 'GET', path: '/api/tickets', desc: 'List active tickets (RBAC Scoped)' },
-      { method: 'POST', path: '/api/tickets', desc: 'Submit a new support ticket (Customer only)' }
-    ]
+    message: 'Customer Support Platform Shared API Service (MongoDB Atlas)',
+    docs: '/README.md'
   });
 });
 
 // 1. Auth Routing: Login endpoint
-app.post('/api/auth/login', (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ message: 'Username and password are required' });
+app.post('/api/auth/login', async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ message: 'Username and password are required' });
+    }
+
+    const user = await userRepository.findByUsername(username);
+    if (!user || user.password !== password) {
+      return res.status(401).json({ message: 'Invalid username or password' });
+    }
+
+    const token = `mock-jwt-token-for-${user.username}`;
+    const userResponse = { ...user };
+    delete userResponse.password;
+    delete userResponse._id;
+
+    return res.status(200).json({
+      token,
+      user: userResponse
+    });
+  } catch (err) {
+    next(err);
   }
-
-  const db = readDb();
-  const user = db.users.find(u => u.username === username && u.password === password);
-  if (!user) {
-    return res.status(401).json({ message: 'Invalid username or password' });
-  }
-
-  // Generate mock auth token
-  const token = `mock-jwt-token-for-${user.username}`;
-  
-  // Strip password in response
-  const userResponse = { ...user };
-  delete userResponse.password;
-
-  return res.status(200).json({
-    token,
-    user: userResponse
-  });
 });
 
-// 2. Ticket Routing: List Tickets (RBAC Scoped)
-app.get('/api/tickets', authenticate, (req, res) => {
-  const db = readDb();
-  let userTickets = [];
+// 2. Ticket Routing: List Tickets (RBAC Scoped + Repository Paginated)
+app.get('/api/tickets', authenticate, async (req, res, next) => {
+  try {
+    const result = await ticketRepository.findTickets(req.query, req.user);
+    const { page, limit, totalItems, totalPages, activeCount, pendingCount, resolvedCount } = result.pagination;
 
-  if (req.user.role === 'customer') {
-    // Customers only see their own tickets
-    userTickets = db.tickets.filter(t => t.customerId === req.user.id);
-  } else {
-    // Agents & Managers see all tickets
-    userTickets = db.tickets;
-  }
-
-  let tickets = [...userTickets];
-
-  // A. Filter by Queue (attention, mine, all)
-  const queue = req.query.queue || 'all';
-  if (queue === 'attention') {
-    tickets = tickets.filter(t => !t.assignedTo || t.status === 'requires_attention');
-  } else if (queue === 'mine') {
-    tickets = tickets.filter(t => t.assignedTo === req.user.id);
-  }
-
-  // B. Filter by Status (comma-separated list)
-  if (req.query.status) {
-    const statuses = req.query.status.split(',');
-    tickets = tickets.filter(t => statuses.includes(t.status));
-  }
-
-  // C. Filter by Category
-  if (req.query.category && req.query.category !== 'All') {
-    tickets = tickets.filter(t => t.category === req.query.category);
-  }
-
-  // D. Filter by AssignedTo
-  if (req.query.assignedTo) {
-    if (req.query.assignedTo === 'unassigned') {
-      tickets = tickets.filter(t => !t.assignedTo);
-    } else {
-      tickets = tickets.filter(t => t.assignedTo === req.query.assignedTo);
-    }
-  }
-
-  // E. Filter by Search (substring match on id, title, description, customerName)
-  if (req.query.search) {
-    const q = req.query.search.toLowerCase().trim();
-    tickets = tickets.filter(t => 
-      t.id.toLowerCase().includes(q) || 
-      t.title.toLowerCase().includes(q) || 
-      (t.description && t.description.toLowerCase().includes(q)) ||
-      t.customerName.toLowerCase().includes(q)
+    res.setHeader('X-Pagination-Page', page);
+    res.setHeader('X-Pagination-Limit', limit);
+    res.setHeader('X-Pagination-Total-Count', totalItems);
+    res.setHeader('X-Pagination-Total-Pages', totalPages);
+    res.setHeader('X-Pagination-Active-Count', activeCount);
+    res.setHeader('X-Pagination-Pending-Count', pendingCount);
+    res.setHeader('X-Pagination-Resolved-Count', resolvedCount);
+    
+    res.setHeader(
+      'Access-Control-Expose-Headers',
+      'X-Pagination-Page, X-Pagination-Limit, X-Pagination-Total-Count, X-Pagination-Total-Pages, X-Pagination-Active-Count, X-Pagination-Pending-Count, X-Pagination-Resolved-Count'
     );
+
+    return res.status(200).json(result.data);
+  } catch (err) {
+    next(err);
   }
-
-  // F. Sort
-  const sort = req.query.sort || 'updatedAt';
-  const order = req.query.order || 'desc';
-  tickets.sort((a, b) => {
-    let comparison = 0;
-    if (sort === 'urgency') {
-      const urgencyWeight = { 'High': 3, 'Medium': 2, 'Low': 1 };
-      const weightA = urgencyWeight[a.urgency] || 0;
-      const weightB = urgencyWeight[b.urgency] || 0;
-      comparison = weightA - weightB;
-    } else if (sort === 'createdAt' || sort === 'updatedAt') {
-      comparison = new Date(a[sort]) - new Date(b[sort]);
-    } else {
-      const valA = String(a[sort] || '').toLowerCase();
-      const valB = String(b[sort] || '').toLowerCase();
-      comparison = valA.localeCompare(valB);
-    }
-    
-    let resVal = order === 'desc' ? -comparison : comparison;
-    
-    // Tie-breaker: sort by updatedAt desc
-    if (resVal === 0) {
-      resVal = new Date(b.updatedAt) - new Date(a.updatedAt);
-    }
-    return resVal;
-  });
-
-  // Calculate totals on full scoped userTickets dataset (before search/filter/pagination)
-  const activeCount = userTickets.filter(t => t.status === 'requires_attention' || t.status === 'under_investigation').length;
-  const pendingCount = userTickets.filter(t => t.status === 'pending_customer').length;
-  const resolvedCount = userTickets.filter(t => t.status === 'resolved').length;
-
-  // G. Pagination
-  const totalItems = tickets.length;
-  const isPaginationRequested = req.query.page !== undefined || req.query.limit !== undefined;
-  
-  const page = isPaginationRequested ? Math.max(1, parseInt(req.query.page, 10) || 1) : 1;
-  const limit = isPaginationRequested ? Math.max(1, Math.min(100, parseInt(req.query.limit, 10) || 20)) : totalItems;
-  const totalPages = Math.ceil(totalItems / limit);
-
-  // H. Slicing
-  const startIdx = (page - 1) * limit;
-  const slicedTickets = tickets.slice(startIdx, startIdx + limit);
-
-  // Format response to exclude full message threads and internal notes in summary list
-  const formattedTickets = slicedTickets.map(t => {
-    const summary = { ...t };
-    delete summary.messages;
-    delete summary.activityTimeline;
-    return summary;
-  });
-
-  // Set Pagination Headers
-  res.setHeader('X-Pagination-Page', page);
-  res.setHeader('X-Pagination-Limit', limit);
-  res.setHeader('X-Pagination-Total-Count', totalItems);
-  res.setHeader('X-Pagination-Total-Pages', totalPages);
-  res.setHeader('X-Pagination-Active-Count', activeCount);
-  res.setHeader('X-Pagination-Pending-Count', pendingCount);
-  res.setHeader('X-Pagination-Resolved-Count', resolvedCount);
-  
-  res.setHeader('Access-Control-Expose-Headers', 'X-Pagination-Page, X-Pagination-Limit, X-Pagination-Total-Count, X-Pagination-Total-Pages, X-Pagination-Active-Count, X-Pagination-Pending-Count, X-Pagination-Resolved-Count');
-
-  return res.status(200).json(formattedTickets);
 });
 
-// 3. Ticket Routing: Get Ticket Details (RBAC Scoped + Internal Notes Redaction)
-app.get('/api/tickets/:id', authenticate, (req, res) => {
-  const db = readDb();
-  const ticket = db.tickets.find(t => t.id === req.params.id);
+// 3. Ticket Routing: Get Ticket Details (RBAC Scoped + Messages Lookup + Notes Redaction)
+app.get('/api/tickets/:id', authenticate, async (req, res, next) => {
+  try {
+    const ticket = await ticketRepository.findById(req.params.id);
 
-  if (!ticket) {
-    return res.status(404).json({ message: 'Ticket not found' });
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    if (req.user.role === 'customer' && ticket.customerId !== req.user.id) {
+      return res.status(403).json({ message: 'Forbidden: You do not have access to this ticket' });
+    }
+
+    const isCustomer = req.user.role === 'customer';
+    const messages = await messageRepository.findByTicketId(ticket.id, isCustomer);
+
+    const responseTicket = { ...ticket, messages };
+    delete responseTicket._id;
+    responseTicket.messages.forEach(m => delete m._id);
+
+    return res.status(200).json(responseTicket);
+  } catch (err) {
+    next(err);
   }
-
-  // Access check
-  if (req.user.role === 'customer' && ticket.customerId !== req.user.id) {
-    return res.status(403).json({ message: 'Forbidden: You do not have access to this ticket' });
-  }
-
-  // Clone ticket to mutate messages safely
-  const responseTicket = JSON.parse(JSON.stringify(ticket));
-
-  // Redact internal notes for customers
-  if (req.user.role === 'customer') {
-    responseTicket.messages = responseTicket.messages.filter(msg => !msg.isInternal);
-  }
-
-  return res.status(200).json(responseTicket);
 });
 
 // 4. Ticket Routing: Submit Ticket (Customer Only)
-app.post('/api/tickets', authenticate, (req, res) => {
-  if (req.user.role !== 'customer') {
-    return res.status(403).json({ message: 'Forbidden: Only customers can submit tickets' });
+app.post('/api/tickets', authenticate, async (req, res, next) => {
+  try {
+    if (req.user.role !== 'customer') {
+      return res.status(403).json({ message: 'Forbidden: Only customers can submit tickets' });
+    }
+
+    const { isValid, errors } = validateTicket(req.body);
+    if (!isValid) {
+      return res.status(400).json({ message: 'Validation failed', errors });
+    }
+
+    const ticketId = `TKT-${Math.floor(1000 + Math.random() * 9000)}`;
+    const now = new Date().toISOString();
+
+    const initialMessage = {
+      id: `msg_${Date.now()}`,
+      ticketId,
+      senderId: req.user.id,
+      senderName: req.user.name,
+      senderRole: 'customer',
+      content: req.body.description.trim(),
+      timestamp: now,
+      isInternal: false
+    };
+
+    const newTicket = {
+      id: ticketId,
+      title: req.body.title.trim(),
+      description: req.body.description.trim(),
+      category: req.body.category,
+      urgency: req.body.urgency,
+      status: 'requires_attention',
+      customerId: req.user.id,
+      customerName: req.user.name,
+      assignedTo: null,
+      assignedName: null,
+      createdAt: now,
+      updatedAt: now,
+      resolutionSummary: null,
+      activityTimeline: [
+        {
+          type: 'creation',
+          message: `Ticket created by ${req.user.name}`,
+          timestamp: now,
+          actorName: req.user.name
+        }
+      ]
+    };
+
+    await ticketRepository.create(newTicket);
+    await messageRepository.create(initialMessage);
+
+    const responseData = {
+      ...newTicket,
+      messages: [initialMessage]
+    };
+
+    return res.status(201).json(responseData);
+  } catch (err) {
+    next(err);
   }
-
-  const { isValid, errors } = validateTicket(req.body);
-  if (!isValid) {
-    return res.status(400).json({ message: 'Validation failed', errors });
-  }
-
-  const db = readDb();
-  const ticketId = `TKT-${Math.floor(1000 + Math.random() * 9000)}`;
-  const now = new Date().toISOString();
-
-  const newTicket = {
-    id: ticketId,
-    title: req.body.title,
-    description: req.body.description,
-    category: req.body.category,
-    urgency: req.body.urgency,
-    status: 'requires_attention',
-    customerId: req.user.id,
-    customerName: req.user.name,
-    assignedTo: null,
-    assignedName: null,
-    createdAt: now,
-    updatedAt: now,
-    resolutionSummary: null,
-    activityTimeline: [
-      {
-        type: 'creation',
-        message: `Ticket created by ${req.user.name}`,
-        timestamp: now,
-        actorName: req.user.name
-      }
-    ],
-    messages: [
-      {
-        id: `msg_${Date.now()}`,
-        senderId: req.user.id,
-        senderName: req.user.name,
-        senderRole: 'customer',
-        content: req.body.description,
-        timestamp: now,
-        isInternal: false
-      }
-    ]
-  };
-
-  db.tickets.push(newTicket);
-  writeDb(db);
-
-  return res.status(201).json(newTicket);
 });
 
 // 5. Ticket Routing: Update Ticket (Status transitions, Assignment)
-app.patch('/api/tickets/:id', authenticate, (req, res) => {
-  const db = readDb();
-  const ticketIndex = db.tickets.findIndex(t => t.id === req.params.id);
+app.patch('/api/tickets/:id', authenticate, async (req, res, next) => {
+  try {
+    const ticket = await ticketRepository.findById(req.params.id);
 
-  if (ticketIndex === -1) {
-    return res.status(404).json({ message: 'Ticket not found' });
-  }
-
-  const ticket = db.tickets[ticketIndex];
-
-  // Validate changes
-  const { isValid, errors } = validateTicket(req.body, true);
-  if (!isValid) {
-    return res.status(400).json({ message: 'Validation failed', errors });
-  }
-
-  const now = new Date().toISOString();
-  const activityEvents = [];
-
-  // Handle status transitions
-  if (req.body.status !== undefined && req.body.status !== ticket.status) {
-    // If ticket is being resolved, require resolution summary
-    if (req.body.status === 'resolved') {
-      const summary = req.body.resolutionSummary || req.body.resolutionText;
-      if (!summary || typeof summary !== 'string' || summary.trim().length < 10 || summary.trim().length > 1000) {
-        return res.status(400).json({ message: 'Resolution summary of at least 10 characters is required to resolve a ticket.' });
-      }
-      ticket.resolutionSummary = summary.trim();
-    }
-    
-    activityEvents.push({
-      type: 'status_change',
-      message: `Status updated from '${ticket.status}' to '${req.body.status}' by ${req.user.name}`,
-      timestamp: now,
-      actorName: req.user.name
-    });
-
-    ticket.status = req.body.status;
-  }
-
-  // Handle assignments
-  if (req.body.assignedTo !== undefined && req.body.assignedTo !== ticket.assignedTo) {
-    const targetAgentId = req.body.assignedTo;
-    
-    if (req.user.role === 'customer') {
-      return res.status(403).json({ message: 'Forbidden: Customers cannot assign tickets' });
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket not found' });
     }
 
-    if (req.user.role === 'agent') {
-      // Agents can only assign to themselves (claim)
-      if (targetAgentId !== null && targetAgentId !== req.user.id) {
-        return res.status(403).json({ message: 'Forbidden: Agents can only assign tickets to themselves' });
-      }
-    }
-
-    // Lookup assignee details
-    let targetAgentName = null;
-    if (targetAgentId) {
-      const targetAgent = db.users.find(u => u.id === targetAgentId && (u.role === 'agent' || u.role === 'manager'));
-      if (!targetAgent) {
-        return res.status(400).json({ message: 'Invalid assignee ID' });
-      }
-      targetAgentName = targetAgent.name;
-    }
-
-    const prevAgentName = ticket.assignedName || 'Unassigned';
-    const newAgentName = targetAgentName || 'Unassigned';
-
-    activityEvents.push({
-      type: 'assignment',
-      message: `Assignment changed from '${prevAgentName}' to '${newAgentName}' by ${req.user.name}`,
-      timestamp: now,
-      actorName: req.user.name
-    });
-
-    ticket.assignedTo = targetAgentId;
-    ticket.assignedName = targetAgentName;
-  }
-
-  // Append new timeline logs
-  if (activityEvents.length > 0) {
-    ticket.activityTimeline.push(...activityEvents);
-  }
-
-  ticket.updatedAt = now;
-  db.tickets[ticketIndex] = ticket;
-  writeDb(db);
-
-  return res.status(200).json(ticket);
-});
-
-// 6. Ticket Routing: Post message (Any authenticated user in conversation)
-app.post('/api/tickets/:id/messages', authenticate, (req, res) => {
-  const { content } = req.body;
-  if (!content || typeof content !== 'string' || content.trim().length < 1 || content.trim().length > 1000) {
-    return res.status(400).json({ message: 'Message content must be between 1 and 1000 characters.' });
-  }
-
-  const db = readDb();
-  const ticketIndex = db.tickets.findIndex(t => t.id === req.params.id);
-
-  if (ticketIndex === -1) {
-    return res.status(404).json({ message: 'Ticket not found' });
-  }
-
-  const ticket = db.tickets[ticketIndex];
-
-  // Customer authorization check
-  if (req.user.role === 'customer' && ticket.customerId !== req.user.id) {
-    return res.status(403).json({ message: 'Forbidden: You do not have access to this ticket' });
-  }
-
-  const now = new Date().toISOString();
-  const newMessage = {
-    id: `msg_${Date.now()}`,
-    senderId: req.user.id,
-    senderName: req.user.name,
-    senderRole: req.user.role,
-    content: content.trim(),
-    timestamp: now,
-    isInternal: false
-  };
-
-  ticket.messages.push(newMessage);
-  
-  // Timeline audit log
-  ticket.activityTimeline.push({
-    type: 'reply',
-    message: `${req.user.name} added a reply`,
-    timestamp: now,
-    actorName: req.user.name
-  });
-
-  // If customer replies, change status back to 'requires_attention' automatically
-  if (req.user.role === 'customer' && ticket.status !== 'requires_attention') {
-    const oldStatus = ticket.status;
-    ticket.status = 'requires_attention';
-    ticket.activityTimeline.push({
-      type: 'status_change',
-      message: `Status reverted from '${oldStatus}' to 'requires_attention' automatically by system due to customer response`,
-      timestamp: now,
-      actorName: 'System'
-    });
-  }
-
-  ticket.updatedAt = now;
-  db.tickets[ticketIndex] = ticket;
-  writeDb(db);
-
-  return res.status(200).json(newMessage);
-});
-
-// 7. Ticket Routing: Post internal note (Agents and Managers only)
-app.post('/api/tickets/:id/notes', authenticate, (req, res) => {
-  if (req.user.role === 'customer') {
-    return res.status(403).json({ message: 'Forbidden: Customers cannot add internal notes' });
-  }
-
-  const { content } = req.body;
-  if (!content || typeof content !== 'string' || content.trim().length < 1 || content.trim().length > 1000) {
-    return res.status(400).json({ message: 'Note content must be between 1 and 1000 characters.' });
-  }
-
-  const db = readDb();
-  const ticketIndex = db.tickets.findIndex(t => t.id === req.params.id);
-
-  if (ticketIndex === -1) {
-    return res.status(404).json({ message: 'Ticket not found' });
-  }
-
-  const ticket = db.tickets[ticketIndex];
-  const now = new Date().toISOString();
-  const newNote = {
-    id: `msg_${Date.now()}`,
-    senderId: req.user.id,
-    senderName: req.user.name,
-    senderRole: req.user.role,
-    content: content.trim(),
-    timestamp: now,
-    isInternal: true
-  };
-
-  ticket.messages.push(newNote);
-
-  // Timeline audit log
-  ticket.activityTimeline.push({
-    type: 'note',
-    message: `${req.user.name} recorded an internal team note`,
-    timestamp: now,
-    actorName: req.user.name
-  });
-
-  ticket.updatedAt = now;
-  db.tickets[ticketIndex] = ticket;
-  writeDb(db);
-
-  return res.status(200).json(newNote);
-});
-
-// 8. Ticket Routing: Post attachment (Any authenticated user in conversation)
-app.post('/api/tickets/:id/attachments', authenticate, (req, res) => {
-  const db = readDb();
-  const ticketIndex = db.tickets.findIndex(t => t.id === req.params.id);
-
-  if (ticketIndex === -1) {
-    return res.status(404).json({ message: 'Ticket not found' });
-  }
-
-  const ticket = db.tickets[ticketIndex];
-
-  if (req.user.role === 'customer' && ticket.customerId !== req.user.id) {
-    return res.status(403).json({ message: 'Forbidden: You do not have access to this ticket' });
-  }
-
-  upload.single('file')(req, res, (err) => {
-    if (err) {
-      return res.status(400).json({ message: err.message || 'File upload failed' });
-    }
-
-    if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
+    const { isValid, errors } = validateTicket(req.body, true);
+    if (!isValid) {
+      return res.status(400).json({ message: 'Validation failed', errors });
     }
 
     const now = new Date().toISOString();
-    const isInternal = req.query.isInternal === 'true' && req.user.role !== 'customer';
-    const attachmentId = `att_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const updateFields = { updatedAt: now };
+    let timelineEvent = null;
 
+    // Status transitions
+    if (req.body.status !== undefined && req.body.status !== ticket.status) {
+      if (req.body.status === 'resolved') {
+        const summary = req.body.resolutionSummary || req.body.resolutionText;
+        if (!summary || typeof summary !== 'string' || summary.trim().length < 10 || summary.trim().length > 1000) {
+          return res.status(400).json({ message: 'Resolution summary of at least 10 characters is required to resolve a ticket.' });
+        }
+        updateFields.resolutionSummary = summary.trim();
+      }
+
+      updateFields.status = req.body.status;
+      timelineEvent = {
+        type: 'status_change',
+        message: `Status updated from '${ticket.status}' to '${req.body.status}' by ${req.user.name}`,
+        timestamp: now,
+        actorName: req.user.name
+      };
+    }
+
+    // Assignments
+    if (req.body.assignedTo !== undefined && req.body.assignedTo !== ticket.assignedTo) {
+      const targetAgentId = req.body.assignedTo;
+
+      if (req.user.role === 'customer') {
+        return res.status(403).json({ message: 'Forbidden: Customers cannot assign tickets' });
+      }
+
+      if (req.user.role === 'agent') {
+        if (targetAgentId !== null && targetAgentId !== req.user.id) {
+          return res.status(403).json({ message: 'Forbidden: Agents can only assign tickets to themselves' });
+        }
+      }
+
+      let targetAgentName = null;
+      if (targetAgentId) {
+        const targetAgent = await userRepository.findById(targetAgentId);
+        if (!targetAgent || (targetAgent.role !== 'agent' && targetAgent.role !== 'manager')) {
+          return res.status(400).json({ message: 'Invalid assignee ID' });
+        }
+        targetAgentName = targetAgent.name;
+      }
+
+      const prevAgentName = ticket.assignedName || 'Unassigned';
+      const newAgentName = targetAgentName || 'Unassigned';
+
+      updateFields.assignedTo = targetAgentId;
+      updateFields.assignedName = targetAgentName;
+
+      timelineEvent = {
+        type: 'assignment',
+        message: `Assignment changed from '${prevAgentName}' to '${newAgentName}' by ${req.user.name}`,
+        timestamp: now,
+        actorName: req.user.name
+      };
+    }
+
+    const updatedTicket = await ticketRepository.update(ticket.id, updateFields, timelineEvent);
+    delete updatedTicket._id;
+
+    return res.status(200).json(updatedTicket);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 6. Ticket Routing: Post message
+app.post('/api/tickets/:id/messages', authenticate, async (req, res, next) => {
+  try {
+    const { content } = req.body;
+    if (!content || typeof content !== 'string' || content.trim().length < 1 || content.trim().length > 1000) {
+      return res.status(400).json({ message: 'Message content must be between 1 and 1000 characters.' });
+    }
+
+    const ticket = await ticketRepository.findById(req.params.id);
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    if (req.user.role === 'customer' && ticket.customerId !== req.user.id) {
+      return res.status(403).json({ message: 'Forbidden: You do not have access to this ticket' });
+    }
+
+    const now = new Date().toISOString();
     const newMessage = {
       id: `msg_${Date.now()}`,
+      ticketId: ticket.id,
       senderId: req.user.id,
       senderName: req.user.name,
       senderRole: req.user.role,
-      content: `[Attachment: ${req.file.originalname}]`,
+      content: content.trim(),
       timestamp: now,
-      isInternal,
-      attachment: {
-        id: attachmentId,
-        filename: req.file.originalname,
-        mimeType: req.file.mimetype,
-        size: req.file.size,
-        storagePath: req.file.filename
-      }
+      isInternal: false
     };
 
-    ticket.messages.push(newMessage);
-    
-    ticket.activityTimeline.push({
-      type: isInternal ? 'note' : 'reply',
-      message: `${req.user.name} uploaded an attachment: ${req.file.originalname}`,
+    await messageRepository.create(newMessage);
+
+    const updateFields = { updatedAt: now };
+    let timelineEvent = {
+      type: 'reply',
+      message: `${req.user.name} added a reply`,
       timestamp: now,
       actorName: req.user.name
-    });
+    };
 
-    if (req.user.role === 'customer' && !isInternal && ticket.status !== 'requires_attention') {
+    if (req.user.role === 'customer' && ticket.status !== 'requires_attention') {
       const oldStatus = ticket.status;
-      ticket.status = 'requires_attention';
-      ticket.activityTimeline.push({
+      updateFields.status = 'requires_attention';
+      timelineEvent = {
         type: 'status_change',
-        message: `Status reverted from '${oldStatus}' to 'requires_attention' automatically by system due to customer attachment`,
+        message: `Status reverted from '${oldStatus}' to 'requires_attention' automatically by system due to customer response`,
         timestamp: now,
         actorName: 'System'
-      });
+      };
     }
 
-    ticket.updatedAt = now;
-    db.tickets[ticketIndex] = ticket;
-    writeDb(db);
+    await ticketRepository.update(ticket.id, updateFields, timelineEvent);
 
-    return res.status(201).json(newMessage);
-  });
+    delete newMessage._id;
+    return res.status(200).json(newMessage);
+  } catch (err) {
+    next(err);
+  }
 });
 
-// 9. Ticket Routing: Download attachment (Scoped access)
-app.get('/api/attachments/:attachmentId', authenticate, (req, res) => {
-  const db = readDb();
-  let foundTicket = null;
-  let foundMessage = null;
-
-  for (const ticket of db.tickets) {
-    const msg = ticket.messages.find(m => m.attachment && m.attachment.id === req.params.attachmentId);
-    if (msg) {
-      foundTicket = ticket;
-      foundMessage = msg;
-      break;
+// 7. Ticket Routing: Post internal note
+app.post('/api/tickets/:id/notes', authenticate, async (req, res, next) => {
+  try {
+    if (req.user.role === 'customer') {
+      return res.status(403).json({ message: 'Forbidden: Customers cannot add internal notes' });
     }
-  }
 
-  if (!foundTicket || !foundMessage) {
-    return res.status(404).json({ message: 'Attachment not found' });
-  }
+    const { content } = req.body;
+    if (!content || typeof content !== 'string' || content.trim().length < 1 || content.trim().length > 1000) {
+      return res.status(400).json({ message: 'Note content must be between 1 and 1000 characters.' });
+    }
 
-  if (req.user.role === 'customer') {
-    if (foundTicket.customerId !== req.user.id) {
+    const ticket = await ticketRepository.findById(req.params.id);
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    const now = new Date().toISOString();
+    const newNote = {
+      id: `msg_${Date.now()}`,
+      ticketId: ticket.id,
+      senderId: req.user.id,
+      senderName: req.user.name,
+      senderRole: req.user.role,
+      content: content.trim(),
+      timestamp: now,
+      isInternal: true
+    };
+
+    await messageRepository.create(newNote);
+
+    const timelineEvent = {
+      type: 'note',
+      message: `${req.user.name} recorded an internal team note`,
+      timestamp: now,
+      actorName: req.user.name
+    };
+
+    await ticketRepository.update(ticket.id, { updatedAt: now }, timelineEvent);
+
+    delete newNote._id;
+    return res.status(200).json(newNote);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 8. Ticket Routing: Post attachment
+app.post('/api/tickets/:id/attachments', authenticate, async (req, res, next) => {
+  try {
+    const ticket = await ticketRepository.findById(req.params.id);
+
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    if (req.user.role === 'customer' && ticket.customerId !== req.user.id) {
       return res.status(403).json({ message: 'Forbidden: You do not have access to this ticket' });
     }
-    if (foundMessage.isInternal) {
-      return res.status(403).json({ message: 'Forbidden: You do not have access to this internal note attachment' });
+
+    upload.single('file')(req, res, async (err) => {
+      if (err) {
+        return res.status(400).json({ message: err.message || 'File upload failed' });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+      }
+
+      try {
+        const now = new Date().toISOString();
+        const isInternal = req.query.isInternal === 'true' && req.user.role !== 'customer';
+        const attachmentId = `att_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+
+        const newMessage = {
+          id: `msg_${Date.now()}`,
+          ticketId: ticket.id,
+          senderId: req.user.id,
+          senderName: req.user.name,
+          senderRole: req.user.role,
+          content: `[Attachment: ${req.file.originalname}]`,
+          timestamp: now,
+          isInternal,
+          attachment: {
+            id: attachmentId,
+            filename: req.file.originalname,
+            mimeType: req.file.mimetype,
+            size: req.file.size,
+            storagePath: req.file.filename
+          }
+        };
+
+        await messageRepository.create(newMessage);
+
+        const updateFields = { updatedAt: now };
+        let timelineEvent = {
+          type: isInternal ? 'note' : 'reply',
+          message: `${req.user.name} uploaded an attachment: ${req.file.originalname}`,
+          timestamp: now,
+          actorName: req.user.name
+        };
+
+        if (req.user.role === 'customer' && !isInternal && ticket.status !== 'requires_attention') {
+          const oldStatus = ticket.status;
+          updateFields.status = 'requires_attention';
+          timelineEvent = {
+            type: 'status_change',
+            message: `Status reverted from '${oldStatus}' to 'requires_attention' automatically by system due to customer attachment`,
+            timestamp: now,
+            actorName: 'System'
+          };
+        }
+
+        await ticketRepository.update(ticket.id, updateFields, timelineEvent);
+
+        delete newMessage._id;
+        return res.status(201).json(newMessage);
+      } catch (uploadErr) {
+        next(uploadErr);
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 9. Ticket Routing: Download attachment
+app.get('/api/attachments/:attachmentId', authenticate, async (req, res, next) => {
+  try {
+    const msg = await messageRepository.findByAttachmentId(req.params.attachmentId);
+
+    if (!msg || !msg.attachment) {
+      return res.status(404).json({ message: 'Attachment not found' });
     }
-  }
 
-  const filePath = path.join(UPLOADS_DIR, foundMessage.attachment.storagePath);
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).json({ message: 'Attachment file not found on disk' });
-  }
+    const ticket = await ticketRepository.findById(msg.ticketId);
 
-  res.setHeader('Content-Type', foundMessage.attachment.mimeType);
-  res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(foundMessage.attachment.filename)}"`);
-  return res.sendFile(filePath);
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    if (req.user.role === 'customer') {
+      if (ticket.customerId !== req.user.id) {
+        return res.status(403).json({ message: 'Forbidden: You do not have access to this ticket' });
+      }
+      if (msg.isInternal) {
+        return res.status(403).json({ message: 'Forbidden: You do not have access to this internal note attachment' });
+      }
+    }
+
+    const filePath = path.join(UPLOADS_DIR, msg.attachment.storagePath);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: 'Attachment file not found on disk' });
+    }
+
+    res.setHeader('Content-Type', msg.attachment.mimeType);
+    res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(msg.attachment.filename)}"`);
+    return res.sendFile(filePath);
+  } catch (err) {
+    next(err);
+  }
 });
 
-app.listen(PORT, () => {
-  console.log(`Persistent Server listening on port ${PORT}`);
+// Global Express Error Handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled server error:', err);
+  res.status(500).json({ message: err.message || 'Internal server error' });
 });
+
+async function startServer() {
+  try {
+    await connectDb();
+    app.listen(PORT, () => {
+      console.log(`Persistent MongoDB Server listening on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
+}
+
+if (require.main === module) {
+  startServer();
+}
+
+module.exports = app;

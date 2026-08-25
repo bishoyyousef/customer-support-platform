@@ -10,7 +10,10 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
     "express": "^4.19.2",
+    "mongodb": "^7.6.0",
+    "mongodb-memory-server": "^11.2.0",
     "multer": "^2.2.0"
   },
   "devDependencies": {
