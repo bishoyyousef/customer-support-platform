@@ -42,10 +42,10 @@ async function connectDb(customUri = null, customDbName = null) {
     }
   }
 
-  // Force seed fresh clean data for memory servers
+  // Seed initial sample data if database is empty
   if (memoryServer) {
     const { runMigration } = require('../scripts/migrate-to-mongodb');
-    await runMigration(true);
+    await runMigration(false);
   }
 
   return db;
