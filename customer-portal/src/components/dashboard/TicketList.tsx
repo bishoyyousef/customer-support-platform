@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { type Ticket, type TicketStatus } from '../../types';
+import { api } from '../../services/api';
 
 interface TicketListProps {
   tickets: Ticket[];
@@ -100,6 +101,29 @@ export const TicketList: React.FC<TicketListProps> = ({
   };
 
   const [showFilterPopover, setShowFilterPopover] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  const [showHistoryDropdown, setShowHistoryDropdown] = useState(false);
+
+  React.useEffect(() => {
+    api.getSearchHistory().then(setSearchHistory).catch(() => {});
+  }, []);
+
+  const saveToHistory = (query: string) => {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    api.addSearchHistory(trimmed).then(setSearchHistory).catch(() => {});
+  };
+
+  const removeFromHistory = (itemToRemove: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    api.removeSearchHistory(itemToRemove).then(setSearchHistory).catch(() => {});
+  };
+
+  const clearSearchHistory = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    api.clearSearchHistory().then(setSearchHistory).catch(() => {});
+  };
+
   const activeFilterCount = (searchQuery.trim() ? 1 : 0) + (selectedCategory !== 'All' ? 1 : 0) + (selectedUrgency !== 'All' ? 1 : 0);
   const hasActiveFilters = activeFilterCount > 0;
 
@@ -107,7 +131,7 @@ export const TicketList: React.FC<TicketListProps> = ({
     <div>
       {/* Search & Filter Toolbar */}
       <div style={styles.toolbar}>
-        <div style={styles.searchContainer}>
+        <div style={{ ...styles.searchContainer, position: 'relative' }}>
           <svg style={styles.searchIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="2">
             <circle cx="11" cy="11" r="8"/>
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -119,7 +143,81 @@ export const TicketList: React.FC<TicketListProps> = ({
             placeholder="Search by ID, title, or description..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
+            onFocus={() => setShowHistoryDropdown(true)}
+            onBlur={() => {
+              saveToHistory(searchQuery);
+              setTimeout(() => setShowHistoryDropdown(false), 200);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                saveToHistory(searchQuery);
+                setShowHistoryDropdown(false);
+              }
+            }}
           />
+
+          {showHistoryDropdown && searchHistory.length > 0 && (
+            <div
+              className="card"
+              style={{
+                position: 'absolute',
+                top: '42px',
+                left: 0,
+                right: 0,
+                zIndex: 105,
+                padding: '0.5rem 0',
+                boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
+                border: '1px solid var(--color-border)',
+                backgroundColor: 'var(--color-bg-surface, #ffffff)'
+              }}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              <div style={{ padding: '0.25rem 0.75rem 0.5rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>RECENT SEARCHES</span>
+                <button
+                  type="button"
+                  onClick={clearSearchHistory}
+                  style={{ background: 'none', border: 'none', color: 'var(--color-primary)', fontSize: '0.75rem', cursor: 'pointer', padding: 0 }}
+                >
+                  Clear All
+                </button>
+              </div>
+              {searchHistory.map((item, index) => (
+                <div
+                  key={index}
+                  onClick={() => {
+                    onSearchChange(item);
+                    setShowHistoryDropdown(false);
+                  }}
+                  style={{
+                    padding: '0.4rem 0.75rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justify: 'space-between',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem'
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-bg-subtle, #f3f4f6)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    {item}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => removeFromHistory(item, e)}
+                    style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', fontSize: '1rem', cursor: 'pointer', lineHeight: 1 }}
+                  >
+                    &times;
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Unified Filter Button & Popover */}

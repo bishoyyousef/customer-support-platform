@@ -512,4 +512,34 @@ describe('Backend Security & Business Rules API Test Suite', () => {
     assert.ok(Array.isArray(summary.agentWorkloads));
     assert.ok(summary.urgencyBreakdown);
   });
+
+  // 9. User Search History MongoDB Persistence Tests
+  test('User search history endpoints persist search queries in MongoDB user document', async () => {
+    const getRes = await fetch(`${BASE_URL}/users/me/search-history`, {
+      headers: { 'Authorization': 'Bearer mock-jwt-token-for-alice' }
+    });
+    assert.strictEqual(getRes.status, 200);
+    const initialList = await getRes.json();
+    assert.ok(Array.isArray(initialList));
+
+    const addRes = await fetch(`${BASE_URL}/users/me/search-history`, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer mock-jwt-token-for-alice',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ query: 'billing' })
+    });
+    assert.strictEqual(addRes.status, 200);
+    const updatedList = await addRes.json();
+    assert.ok(updatedList.includes('billing'));
+
+    const delRes = await fetch(`${BASE_URL}/users/me/search-history?query=billing`, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer mock-jwt-token-for-alice' }
+    });
+    assert.strictEqual(delRes.status, 200);
+    const finalDelList = await delRes.json();
+    assert.strictEqual(finalDelList.includes('billing'), false);
+  });
 });

@@ -138,10 +138,33 @@ export const api = {
 
   uploadAttachment: async (ticketId: string, file: File) => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('attachment', file);
     return request<any>(`tickets/${ticketId}/attachments`, {
       method: 'POST',
       body: formData,
     });
-  }
+  },
+
+  getSearchHistory: async () => {
+    return request<string[]>('users/me/search-history');
+  },
+
+  addSearchHistory: async (query: string) => {
+    return request<string[]>('users/me/search-history', {
+      method: 'POST',
+      body: JSON.stringify({ query }),
+    });
+  },
+
+  removeSearchHistory: async (query: string) => {
+    return request<string[]>(`users/me/search-history?query=${encodeURIComponent(query)}`, {
+      method: 'DELETE',
+    });
+  },
+
+  clearSearchHistory: async () => {
+    return request<string[]>('users/me/search-history', {
+      method: 'DELETE',
+    });
+  },
 };

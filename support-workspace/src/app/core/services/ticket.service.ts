@@ -107,4 +107,20 @@ export class TicketService {
   getManagerSummary(): Observable<ManagerSummary> {
     return this.http.get<ManagerSummary>(`${environment.apiUrl}/manager/summary`);
   }
+
+  getSearchHistory(): Observable<string[]> {
+    return this.http.get<string[]>(`${environment.apiUrl}/users/me/search-history`);
+  }
+
+  addSearchHistory(query: string): Observable<string[]> {
+    return this.http.post<string[]>(`${environment.apiUrl}/users/me/search-history`, { query });
+  }
+
+  removeSearchHistory(query: string): Observable<string[]> {
+    return this.http.delete<string[]>(`${environment.apiUrl}/users/me/search-history?query=${encodeURIComponent(query)}`);
+  }
+
+  clearSearchHistory(): Observable<string[]> {
+    return this.http.delete<string[]>(`${environment.apiUrl}/users/me/search-history`);
+  }
 }

@@ -26,7 +26,7 @@ import { HighlightPipe } from '../../shared/pipes/highlight.pipe';
       <div class="toolbar card" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
         <div class="toolbar-left" style="flex: 1;">
           <!-- Search Box -->
-          <div class="search-box">
+          <div class="search-box" style="position: relative;">
             <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="2">
               <circle cx="11" cy="11" r="8"/>
               <line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -37,7 +37,49 @@ import { HighlightPipe } from '../../shared/pipes/highlight.pipe';
               placeholder="Search by ID, title, or customer name..."
               [ngModel]="searchQuery$ | async"
               (ngModelChange)="onSearchChange($event)"
+              (focus)="onSearchFocus()"
+              (blur)="onSearchBlur()"
+              (keydown)="onSearchKeyDown($event)"
             />
+
+            <!-- Search History Dropdown -->
+            <div
+              *ngIf="showHistoryDropdown && searchHistory.length > 0"
+              class="card"
+              style="position: absolute; top: 42px; left: 0; right: 0; z-index: 105; padding: 0.5rem 0; box-shadow: 0 8px 20px rgba(0,0,0,0.15); border: 1px solid var(--color-border); background-color: var(--color-bg-surface, #ffffff);"
+              (mousedown)="$event.preventDefault()"
+            >
+              <div style="padding: 0.25rem 0.75rem 0.5rem; font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); display: flex; justify-content: space-between; align-items: center;">
+                <span>RECENT SEARCHES</span>
+                <button
+                  type="button"
+                  (click)="clearSearchHistory($event)"
+                  style="background: none; border: none; color: var(--color-primary); font-size: 0.75rem; cursor: pointer; padding: 0;"
+                >
+                  Clear All
+                </button>
+              </div>
+              <div
+                *ngFor="let item of searchHistory"
+                (click)="selectHistoryItem(item)"
+                style="padding: 0.4rem 0.75rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 0.85rem;"
+              >
+                <span style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  {{ item }}
+                </span>
+                <button
+                  type="button"
+                  (click)="removeFromHistory(item, $event)"
+                  style="background: none; border: none; color: var(--color-text-muted); font-size: 1rem; cursor: pointer; line-height: 1;"
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- Single Multi-Attribute Filter Popover Button -->
@@ -541,6 +583,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadPresets();
+    this.loadSearchHistory();
     this.loading$ = this.ticketService.loading$;
 
     this.page$ = this.ticketService.page$;
@@ -655,6 +698,64 @@ export class DashboardComponent implements OnInit, OnDestroy {
       if (current === 'category-desc') return '▼';
     }
     return '↕';
+  }
+
+  searchHistory: string[] = [];
+  showHistoryDropdown = false;
+
+  loadSearchHistory(): void {
+    this.ticketService.getSearchHistory().subscribe({
+      next: (history) => this.searchHistory = history,
+      error: () => {}
+    });
+  }
+
+  saveToHistory(query: string): void {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    this.ticketService.addSearchHistory(trimmed).subscribe({
+      next: (history) => this.searchHistory = history,
+      error: () => {}
+    });
+  }
+
+  removeFromHistory(itemToRemove: string, event: MouseEvent): void {
+    event.stopPropagation();
+    this.ticketService.removeSearchHistory(itemToRemove).subscribe({
+      next: (history) => this.searchHistory = history,
+      error: () => {}
+    });
+  }
+
+  clearSearchHistory(event: MouseEvent): void {
+    event.stopPropagation();
+    this.ticketService.clearSearchHistory().subscribe({
+      next: (history) => this.searchHistory = history,
+      error: () => {}
+    });
+  }
+
+  onSearchFocus(): void {
+    this.showHistoryDropdown = true;
+  }
+
+  onSearchBlur(): void {
+    this.saveToHistory(this.searchQuery$.value);
+    setTimeout(() => {
+      this.showHistoryDropdown = false;
+    }, 200);
+  }
+
+  onSearchKeyDown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      this.saveToHistory(this.searchQuery$.value);
+      this.showHistoryDropdown = false;
+    }
+  }
+
+  selectHistoryItem(item: string): void {
+    this.searchQuery$.next(item);
+    this.showHistoryDropdown = false;
   }
 
   onSearchChange(val: string): void {
