@@ -39,27 +39,70 @@ import { Ticket, TicketStatus } from '../../core/models';
             />
           </div>
 
-          <!-- Category Selector -->
-          <select
-            class="form-control filter-select"
-            [ngModel]="selectedCategory$ | async"
-            (ngModelChange)="onCategoryChange($event)"
-          >
-            <option value="All">All Categories</option>
-            <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
-          </select>
+          <!-- Single Multi-Attribute Filter Popover Button -->
+          <div style="position: relative; display: inline-block;">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              (click)="toggleFilterPopover()"
+              style="height: 36px; display: inline-flex; align-items: center; gap: 0.5rem;"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+              </svg>
+              Filter
+              <span *ngIf="activeFilterCount > 0" class="badge" style="background-color: var(--color-primary); color: white; border-radius: 999px; padding: 0.15rem 0.45rem; font-size: 0.75rem;">
+                {{ activeFilterCount }}
+              </span>
+            </button>
 
-          <!-- Sorting Selector -->
-          <select
-            class="form-control filter-select"
-            [ngModel]="selectedSort$ | async"
-            (ngModelChange)="onSortChange($event)"
-          >
-            <option value="urgency-desc">Urgency: High to Low</option>
-            <option value="urgency-asc">Urgency: Low to High</option>
-            <option value="date-desc">Updated: Newest First</option>
-            <option value="date-asc">Updated: Oldest First</option>
-          </select>
+            <!-- Filter Popover Panel -->
+            <div *ngIf="showFilterPopover" class="card" style="position: absolute; top: 42px; left: 0; z-index: 100; min-width: 260px; padding: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid var(--color-border);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <strong style="font-size: 0.9rem;">Filter Tickets</strong>
+                <button type="button" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--color-text-muted);" (click)="toggleFilterPopover()">&times;</button>
+              </div>
+
+              <!-- Category -->
+              <div class="form-group" style="margin-bottom: 0.75rem;">
+                <label class="form-label" style="font-size: 0.8rem; margin-bottom: 0.25rem;">Category</label>
+                <select
+                  class="form-control filter-select"
+                  style="width: 100%;"
+                  [ngModel]="selectedCategory$ | async"
+                  (ngModelChange)="onCategoryChange($event)"
+                >
+                  <option value="All">All Categories</option>
+                  <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+                </select>
+              </div>
+
+              <!-- Urgency -->
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label class="form-label" style="font-size: 0.8rem; margin-bottom: 0.25rem;">Urgency Priority</label>
+                <select
+                  class="form-control filter-select"
+                  style="width: 100%;"
+                  [ngModel]="selectedUrgency$ | async"
+                  (ngModelChange)="onUrgencyChange($event)"
+                >
+                  <option value="All">All Urgencies</option>
+                  <option value="High">High Priority</option>
+                  <option value="Medium">Medium Priority</option>
+                  <option value="Low">Low Priority</option>
+                </select>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--color-border); padding-top: 0.5rem;">
+                <button type="button" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.25rem 0.5rem;" (click)="clearAllFilters()">
+                  Clear All
+                </button>
+                <button type="button" class="btn btn-primary" style="font-size: 0.8rem; padding: 0.25rem 0.5rem;" (click)="toggleFilterPopover()">
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="toolbar-right">
@@ -135,7 +178,7 @@ import { Ticket, TicketStatus } from '../../core/models';
             <path d="M12 18V12m0-4h.01"/>
           </svg>
           <h3>No tickets found in this queue</h3>
-          <p>Try adjusting your search query or sorting options.</p>
+          <p>Try adjusting your search query or filter options.</p>
         </div>
 
         <table *ngIf="!(loading$ | async) && ((filteredTickets$ | async)?.length ?? 0) > 0" class="density-table">
@@ -143,11 +186,17 @@ import { Ticket, TicketStatus } from '../../core/models';
             <tr>
               <th style="width: 100px;">ID</th>
               <th>Subject</th>
-              <th style="width: 110px;">Category</th>
-              <th style="width: 120px;">Urgency</th>
-              <th style="width: 150px;">Status</th>
-              <th style="width: 150px;">Assignee</th>
-              <th style="width: 110px;">Updated</th>
+              <th style="width: 110px; cursor: pointer; user-select: none;" (click)="toggleSort('category')">
+                Category {{ getSortIcon('category') }}
+              </th>
+              <th style="width: 130px; cursor: pointer; user-select: none;" (click)="toggleSort('urgency')">
+                Urgency {{ getSortIcon('urgency') }}
+              </th>
+              <th style="width: 140px;">Status</th>
+              <th style="width: 140px;">Assignee</th>
+              <th style="width: 120px; cursor: pointer; user-select: none;" (click)="toggleSort('date')">
+                Updated {{ getSortIcon('date') }}
+              </th>
               <th style="width: 110px; text-align: right;">Action</th>
             </tr>
           </thead>
@@ -168,17 +217,30 @@ import { Ticket, TicketStatus } from '../../core/models';
                 <span [class]="getStatusClass(t.status)">{{ getStatusText(t.status) }}</span>
               </td>
               <td class="assignee-cell">
-                <span *ngIf="t.assignedTo; else unassignedText" class="assignee-tag">
-                  {{ t.assignedName }}
-                </span>
-                <ng-template #unassignedText>
-                  <span class="unassigned-lbl">Unassigned</span>
+                <ng-container *ngIf="currentUser?.role === 'manager'; else defaultAssigneeView">
+                  <select
+                    class="form-control select-control"
+                    style="padding: 0.25rem 0.5rem; font-size: 0.85rem;"
+                    [ngModel]="t.assignedTo"
+                    (ngModelChange)="reassignTicket(t.id, $event)"
+                  >
+                    <option [value]="null">Unassigned</option>
+                    <option *ngFor="let agent of availableAgents" [value]="agent.id">{{ agent.name }}</option>
+                  </select>
+                </ng-container>
+                <ng-template #defaultAssigneeView>
+                  <span *ngIf="t.assignedTo; else unassignedText" class="assignee-tag">
+                    {{ t.assignedName }}
+                  </span>
+                  <ng-template #unassignedText>
+                    <span class="unassigned-lbl">Unassigned</span>
+                  </ng-template>
                 </ng-template>
               </td>
               <td class="date-cell">{{ formatDate(t.updatedAt) }}</td>
               <td style="text-align: right;">
                 <button
-                  *ngIf="!t.assignedTo"
+                  *ngIf="(currentUser && currentUser.role === 'manager' && t.assignedTo !== currentUser.id) || (!t.assignedTo && (!currentUser || currentUser.role !== 'manager'))"
                   (click)="claimTicket(t.id)"
                   class="btn btn-secondary claim-btn"
                 >
@@ -441,10 +503,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
   categories = ['Billing', 'Technical', 'Account', 'Other'];
   errorMsg: string | null = null;
   savedPresets: any[] = [];
+  availableAgents = [
+    { id: 'agent_1', name: 'Charlie Davis' },
+    { id: 'agent_2', name: 'Diana Evans' },
+    { id: 'mgr_1', name: 'Eve Foster' }
+  ];
+
+  get currentUser() {
+    return this.authService.currentUserValue;
+  }
 
   // RxJS Store Streams
   searchQuery$ = new BehaviorSubject<string>('');
   selectedCategory$ = new BehaviorSubject<string>('All');
+  selectedUrgency$ = new BehaviorSubject<string>('All');
   selectedSort$ = new BehaviorSubject<string>('urgency-desc');
   activeTab$ = new BehaviorSubject<'attention' | 'mine' | 'all'>('attention');
   currentPage$ = new BehaviorSubject<number>(1);
@@ -478,6 +550,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.filterResetSubscription = combineLatest([
       this.searchQuery$,
       this.selectedCategory$,
+      this.selectedUrgency$,
       this.selectedSort$,
       this.activeTab$
     ]).pipe(
@@ -491,6 +564,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.querySubscription = combineLatest([
       this.searchQuery$,
       this.selectedCategory$,
+      this.selectedUrgency$,
       this.selectedSort$,
       this.activeTab$,
       this.currentPage$,
@@ -498,7 +572,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     ]).pipe(
       debounceTime(300),
       distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
-      switchMap(([search, category, sort, tab, page, currentUser]) => {
+      switchMap(([search, category, urgency, sort, tab, page, currentUser]) => {
         if (!currentUser) return [];
 
         const [sortField, sortOrder] = sort.split('-');
@@ -508,6 +582,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           limit: 10,
           search: search.trim() || undefined,
           category: category === 'All' ? undefined : category,
+          urgency: urgency === 'All' ? undefined : urgency,
           sort: sortField,
           order: sortOrder,
           queue: tab
@@ -535,12 +610,62 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
+  showFilterPopover = false;
+
+  toggleFilterPopover(): void {
+    this.showFilterPopover = !this.showFilterPopover;
+  }
+
+  get activeFilterCount(): number {
+    let count = 0;
+    if (this.searchQuery$.value.trim()) count++;
+    if (this.selectedCategory$.value !== 'All') count++;
+    if (this.selectedUrgency$.value !== 'All') count++;
+    return count;
+  }
+
+  clearAllFilters(): void {
+    this.searchQuery$.next('');
+    this.selectedCategory$.next('All');
+    this.selectedUrgency$.next('All');
+  }
+
+  toggleSort(column: 'urgency' | 'category' | 'date'): void {
+    const current = this.selectedSort$.value;
+    if (column === 'urgency') {
+      this.selectedSort$.next(current === 'urgency-desc' ? 'urgency-asc' : 'urgency-desc');
+    } else if (column === 'date') {
+      this.selectedSort$.next(current === 'date-desc' ? 'date-asc' : 'date-desc');
+    } else if (column === 'category') {
+      this.selectedSort$.next(current === 'category-asc' ? 'category-desc' : 'category-asc');
+    }
+  }
+
+  getSortIcon(column: 'urgency' | 'category' | 'date'): string {
+    const current = this.selectedSort$.value;
+    if (column === 'urgency') {
+      if (current === 'urgency-desc') return '▼';
+      if (current === 'urgency-asc') return '▲';
+    } else if (column === 'date') {
+      if (current === 'date-desc') return '▼';
+      if (current === 'date-asc') return '▲';
+    } else if (column === 'category') {
+      if (current === 'category-asc') return '▲';
+      if (current === 'category-desc') return '▼';
+    }
+    return '↕';
+  }
+
   onSearchChange(val: string): void {
     this.searchQuery$.next(val);
   }
 
   onCategoryChange(val: string): void {
     this.selectedCategory$.next(val);
+  }
+
+  onUrgencyChange(val: string): void {
+    this.selectedUrgency$.next(val);
   }
 
   onSortChange(val: string): void {
@@ -575,6 +700,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.ticketService.claimTicket(ticketId, user.id).subscribe({
       error: (err) => {
         this.errorMsg = err.error?.message || err.message || 'Failed to claim ticket.';
+      }
+    });
+  }
+
+  reassignTicket(ticketId: string, targetAgentId: any): void {
+    const targetId = (!targetAgentId || targetAgentId === 'null') ? null : targetAgentId;
+    this.errorMsg = null;
+    this.ticketService.reassignTicket(ticketId, targetId).subscribe({
+      error: (err) => {
+        this.errorMsg = err.error?.message || err.message || 'Failed to reassign ticket.';
       }
     });
   }

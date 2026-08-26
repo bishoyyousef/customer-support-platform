@@ -15,6 +15,7 @@ export const Dashboard: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedUrgency, setSelectedUrgency] = useState('All');
   const [activeTab, setActiveTab] = useState<'active' | 'pending' | 'resolved'>('active');
 
   // Search debouncing states
@@ -53,6 +54,7 @@ export const Dashboard: React.FC = () => {
         limit: 10,
         search: debouncedSearchVal,
         category: selectedCategory === 'All' ? undefined : selectedCategory,
+        urgency: selectedUrgency === 'All' ? undefined : selectedUrgency,
         status: statusQuery
       });
 
@@ -83,7 +85,7 @@ export const Dashboard: React.FC = () => {
   // Re-run fetching when query conditions or page changes
   useEffect(() => {
     fetchTickets();
-  }, [currentPage, debouncedSearchVal, selectedCategory, activeTab]);
+  }, [currentPage, debouncedSearchVal, selectedCategory, selectedUrgency, activeTab]);
 
   return (
     <div>
@@ -129,11 +131,19 @@ export const Dashboard: React.FC = () => {
             totalItems={totalItems}
             searchQuery={searchVal}
             selectedCategory={selectedCategory}
+            selectedUrgency={selectedUrgency}
             activeTab={activeTab}
             onPageChange={setCurrentPage}
             onSearchChange={setSearchVal}
             onCategoryChange={(cat) => { setSelectedCategory(cat); setCurrentPage(1); }}
+            onUrgencyChange={(urg) => { setSelectedUrgency(urg); setCurrentPage(1); }}
             onTabChange={(tab) => { setActiveTab(tab); setCurrentPage(1); }}
+            onClearFilters={() => {
+              setSearchVal('');
+              setSelectedCategory('All');
+              setSelectedUrgency('All');
+              setCurrentPage(1);
+            }}
           />
         </>
       )}

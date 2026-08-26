@@ -60,6 +60,16 @@ class TicketRepository {
       query.category = queryParams.category;
     }
 
+    // Urgency filter
+    if (queryParams.urgency && queryParams.urgency !== 'All') {
+      const urgencies = queryParams.urgency.split(',');
+      if (urgencies.length === 1) {
+        query.urgency = urgencies[0];
+      } else {
+        query.urgency = { $in: urgencies };
+      }
+    }
+
     // AssignedTo filter
     if (queryParams.assignedTo) {
       if (queryParams.assignedTo === 'unassigned') {

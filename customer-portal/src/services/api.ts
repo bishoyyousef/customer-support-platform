@@ -97,7 +97,7 @@ export const api = {
     });
   },
 
-  getTickets: async (params?: { page?: number; limit?: number; search?: string; status?: string; category?: string; sort?: string; order?: string; queue?: string }) => {
+  getTickets: async (params?: { page?: number; limit?: number; search?: string; status?: string; category?: string; urgency?: string; sort?: string; order?: string; queue?: string }) => {
     const query = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, val]) => {

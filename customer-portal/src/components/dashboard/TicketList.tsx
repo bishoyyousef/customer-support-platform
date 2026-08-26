@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { type Ticket, type TicketStatus } from '../../types';
 
@@ -10,11 +10,14 @@ interface TicketListProps {
   totalItems: number;
   searchQuery: string;
   selectedCategory: string;
+  selectedUrgency: string;
   activeTab: 'active' | 'pending' | 'resolved';
   onPageChange: (page: number) => void;
   onSearchChange: (search: string) => void;
   onCategoryChange: (category: string) => void;
+  onUrgencyChange: (urgency: string) => void;
   onTabChange: (tab: 'active' | 'pending' | 'resolved') => void;
+  onClearFilters: () => void;
 }
 
 export const TicketList: React.FC<TicketListProps> = ({
@@ -25,13 +28,17 @@ export const TicketList: React.FC<TicketListProps> = ({
   totalItems,
   searchQuery,
   selectedCategory,
+  selectedUrgency,
   activeTab,
   onPageChange,
   onSearchChange,
   onCategoryChange,
-  onTabChange
+  onUrgencyChange,
+  onTabChange,
+  onClearFilters
 }) => {
   const categories = ['All', 'Billing', 'Technical', 'Account', 'Other'];
+  const urgencies = ['All', 'High', 'Medium', 'Low'];
 
   const getStatusText = (status: TicketStatus) => {
     switch (status) {
@@ -60,6 +67,10 @@ export const TicketList: React.FC<TicketListProps> = ({
     }
   };
 
+  const [showFilterPopover, setShowFilterPopover] = useState(false);
+  const activeFilterCount = (searchQuery.trim() ? 1 : 0) + (selectedCategory !== 'All' ? 1 : 0) + (selectedUrgency !== 'All' ? 1 : 0);
+  const hasActiveFilters = activeFilterCount > 0;
+
   return (
     <div>
       {/* Search & Filter Toolbar */}
@@ -79,17 +90,100 @@ export const TicketList: React.FC<TicketListProps> = ({
           />
         </div>
 
-        <select
-          className="form-control"
-          style={styles.categorySelect}
-          value={selectedCategory}
-          onChange={(e) => onCategoryChange(e.target.value)}
-        >
-          {categories.map(c => (
-            <option key={c} value={c}>{c === 'All' ? 'All Categories' : c}</option>
-          ))}
-        </select>
+        {/* Unified Filter Button & Popover */}
+        <div style={{ position: 'relative', display: 'inline-block' }}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setShowFilterPopover(!showFilterPopover)}
+            style={{ height: '36px', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            Filter
+            {activeFilterCount > 0 && (
+              <span className="badge" style={{ backgroundColor: 'var(--color-primary)', color: 'white', borderRadius: '999px', padding: '0.15rem 0.45rem', fontSize: '0.75rem' }}>
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+
+          {showFilterPopover && (
+            <div className="card" style={{ position: 'absolute', top: '42px', right: 0, zIndex: 100, minWidth: '260px', padding: '1rem', boxShadow: '0 10px 25px rgba(0,0,0,0.15)', border: '1px solid var(--color-border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <strong style={{ fontSize: '0.9rem' }}>Filter Requests</strong>
+                <button type="button" style={{ background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer', color: 'var(--color-text-muted)' }} onClick={() => setShowFilterPopover(false)}>&times;</button>
+              </div>
+
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label className="form-label" style={{ fontSize: '0.8rem', marginBottom: '0.25rem', display: 'block' }}>Category</label>
+                <select
+                  className="form-control"
+                  style={{ width: '100%' }}
+                  value={selectedCategory}
+                  onChange={(e) => onCategoryChange(e.target.value)}
+                >
+                  {categories.map(c => (
+                    <option key={c} value={c}>{c === 'All' ? 'All Categories' : c}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ marginBottom: '1rem' }}>
+                <label className="form-label" style={{ fontSize: '0.8rem', marginBottom: '0.25rem', display: 'block' }}>Urgency Priority</label>
+                <select
+                  className="form-control"
+                  style={{ width: '100%' }}
+                  value={selectedUrgency}
+                  onChange={(e) => onUrgencyChange(e.target.value)}
+                >
+                  {urgencies.map(u => (
+                    <option key={u} value={u}>{u === 'All' ? 'All Urgencies' : `${u} Priority`}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                <button type="button" className="btn btn-secondary" style={{ fontSize: '0.8rem', padding: '0.25rem 0.5rem' }} onClick={onClearFilters}>
+                  Clear All
+                </button>
+                <button type="button" className="btn btn-primary" style={{ fontSize: '0.8rem', padding: '0.25rem 0.5rem' }} onClick={() => setShowFilterPopover(false)}>
+                  Done
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Active Filter Badges */}
+      {hasActiveFilters && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>Active Filters:</span>
+          {searchQuery && (
+            <span className="badge" style={{ backgroundColor: 'var(--color-bg-subtle)', color: 'var(--color-text-main)', border: '1px solid var(--color-border)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+              Search: "{searchQuery}"
+              <span style={{ cursor: 'pointer', marginLeft: '0.25rem' }} onClick={() => onSearchChange('')}>×</span>
+            </span>
+          )}
+          {selectedCategory !== 'All' && (
+            <span className="badge" style={{ backgroundColor: 'var(--color-bg-subtle)', color: 'var(--color-text-main)', border: '1px solid var(--color-border)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+              Category: {selectedCategory}
+              <span style={{ cursor: 'pointer', marginLeft: '0.25rem' }} onClick={() => onCategoryChange('All')}>×</span>
+            </span>
+          )}
+          {selectedUrgency !== 'All' && (
+            <span className="badge" style={{ backgroundColor: 'var(--color-bg-subtle)', color: 'var(--color-text-main)', border: '1px solid var(--color-border)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+              Urgency: {selectedUrgency}
+              <span style={{ cursor: 'pointer', marginLeft: '0.25rem' }} onClick={() => onUrgencyChange('All')}>×</span>
+            </span>
+          )}
+          <button onClick={onClearFilters} className="btn btn-secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}>
+            Clear All
+          </button>
+        </div>
+      )}
 
       {/* Tabs */}
       <div style={styles.tabContainer}>

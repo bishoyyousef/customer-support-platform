@@ -223,12 +223,12 @@ import { environment } from '../../../environments/environment';
             <div class="stepper-buttons">
               <!-- Claim -->
               <button 
-                *ngIf="!ticket.assignedTo" 
+                *ngIf="!ticket.assignedTo || (currentUser && currentUser.role === 'manager' && ticket.assignedTo !== currentUser.id)" 
                 (click)="claimTicket()" 
                 class="btn btn-primary btn-block"
                 [disabled]="isSubmitting"
               >
-                Claim Ticket
+                {{ currentUser && currentUser.role === 'manager' && ticket.assignedTo ? 'Claim for Myself' : 'Claim Ticket' }}
               </button>
 
               <!-- Move to Under Investigation -->
