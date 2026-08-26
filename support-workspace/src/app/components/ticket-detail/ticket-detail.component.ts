@@ -89,15 +89,15 @@ import { environment } from '../../../environments/environment';
 
         <!-- Dual Channel Composer Tab Panel -->
         <div class="composer-container">
-          <div *ngIf="ticket?.status === 'resolved'" class="resolved-banner">
+          <div *ngIf="ticket && ticket.status === 'resolved'" class="resolved-banner">
             <p>This request has been resolved. The conversation is closed.</p>
-            <div *ngIf="ticket?.resolutionSummary" class="resolution-detail">
+            <div *ngIf="ticket.resolutionSummary" class="resolution-detail">
               <strong>Resolution Summary:</strong>
-              <div class="resolution-text">{{ ticket?.resolutionSummary }}</div>
+              <div class="resolution-text">{{ ticket.resolutionSummary }}</div>
             </div>
           </div>
 
-          <div *ngIf="ticket?.status !== 'resolved'">
+          <div *ngIf="ticket && ticket.status !== 'resolved'">
             <!-- Tab headers -->
             <div class="composer-tabs">
               <button 
@@ -218,12 +218,12 @@ import { environment } from '../../../environments/environment';
           </div>
 
           <!-- Status Stepper controls -->
-          <div class="stepper-section" *ngIf="ticket?.status !== 'resolved'">
+          <div class="stepper-section" *ngIf="ticket && ticket.status !== 'resolved'">
             <h5>Status Progression</h5>
             <div class="stepper-buttons">
               <!-- Claim -->
               <button 
-                *ngIf="!ticket?.assignedTo" 
+                *ngIf="!ticket.assignedTo" 
                 (click)="claimTicket()" 
                 class="btn btn-primary btn-block"
                 [disabled]="isSubmitting"
@@ -233,7 +233,7 @@ import { environment } from '../../../environments/environment';
 
               <!-- Move to Under Investigation -->
               <button 
-                *ngIf="ticket?.assignedTo && ticket?.status !== 'under_investigation'" 
+                *ngIf="ticket.assignedTo && ticket.status !== 'under_investigation'" 
                 (click)="updateStatus('under_investigation')" 
                 class="btn btn-secondary btn-block"
                 [disabled]="isSubmitting"
@@ -243,7 +243,7 @@ import { environment } from '../../../environments/environment';
 
               <!-- Move to Awaiting Customer -->
               <button 
-                *ngIf="ticket?.assignedTo && ticket?.status !== 'pending_customer'" 
+                *ngIf="ticket.assignedTo && ticket.status !== 'pending_customer'" 
                 (click)="updateStatus('pending_customer')" 
                 class="btn btn-secondary btn-block"
                 [disabled]="isSubmitting"
@@ -253,7 +253,7 @@ import { environment } from '../../../environments/environment';
 
               <!-- Resolve -->
               <button 
-                *ngIf="ticket?.assignedTo" 
+                *ngIf="ticket.assignedTo" 
                 (click)="openResolveModal()" 
                 class="btn btn-success-action btn-block"
                 [disabled]="isSubmitting"

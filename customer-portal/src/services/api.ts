@@ -47,6 +47,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     return {} as T;
   }
 
+  const data = await response.json() as T;
+  return data;
+}
+
 async function requestWithResponse<T>(path: string, options: RequestInit = {}): Promise<{ data: T; headers: Headers }> {
   const token = localStorage.getItem('support_platform_token');
   const headers = new Headers(options.headers || {});

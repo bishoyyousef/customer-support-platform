@@ -115,7 +115,7 @@ import { Ticket, TicketStatus } from '../../core/models';
       <!-- Error Alerts -->
       <div *ngIf="errorMsg" class="alert alert-danger" role="alert">
         <span>{{ errorMsg }}</span>
-        <button (click)="loadTickets()" class="btn btn-secondary" style="margin-left: auto; height: 28px; padding: 0 0.5rem;">Retry</button>
+        <button (click)="refreshTickets()" class="btn btn-secondary" style="margin-left: auto; height: 28px; padding: 0 0.5rem;">Retry</button>
       </div>
 
       <!-- Tickets Grid Table -->
@@ -192,7 +192,7 @@ import { Ticket, TicketStatus } from '../../core/models';
         <!-- Pagination controls -->
         <div *ngIf="(totalPages$ | async) && (totalPages$ | async)! > 1" class="pagination-controls" style="display: flex; justify-content: center; align-items: center; gap: 1.5rem; padding: 1.5rem; border-top: 1px solid var(--color-border); flex-wrap: wrap;">
           <button
-            (click)="onPageChange((page$ | async)! - 1)"
+            (click)="changePage(-1)"
             [disabled]="(page$ | async) === 1"
             class="btn btn-secondary"
             style="min-width: 90px;"
@@ -203,7 +203,7 @@ import { Ticket, TicketStatus } from '../../core/models';
             Page <strong>{{ page$ | async }}</strong> of <strong>{{ totalPages$ | async }}</strong> (Total: {{ totalItems$ | async }} tickets)
           </span>
           <button
-            (click)="onPageChange((page$ | async)! + 1)"
+            (click)="changePage(1)"
             [disabled]="(page$ | async) === (totalPages$ | async)"
             class="btn btn-secondary"
             style="min-width: 90px;"
@@ -553,6 +553,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   onPageChange(page: number): void {
     this.currentPage$.next(page);
+  }
+
+  changePage(delta: number): void {
+    const current = this.currentPage$.value;
+    const next = current + delta;
+    if (next >= 1) {
+      this.onPageChange(next);
+    }
+  }
+
+  refreshTickets(): void {
+    this.currentPage$.next(this.currentPage$.value);
   }
 
   claimTicket(ticketId: string): void {
