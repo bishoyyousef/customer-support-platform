@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { connectDb, closeDb } = require('../database/connection').default;
+const { connectDb, closeDb } = require('../database/connection');
 const userRepository = require('../repositories/userRepository');
 const ticketRepository = require('../repositories/ticketRepository');
 const messageRepository = require('../repositories/messageRepository');

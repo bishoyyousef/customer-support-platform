@@ -1,4 +1,4 @@
-const { getDb } = require('../database/connection').default;
+const { getDb } = require('../database/connection');
 
 class TicketRepository {
   get collection() {
