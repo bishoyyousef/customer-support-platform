@@ -117,15 +117,15 @@ import { environment } from '../../../environments/environment';
               </button>
             </div>
 
-            <!-- Inputs -->
             <form (ngSubmit)="sendReply()" class="composer-form">
               <textarea
                 class="form-control composer-textarea"
-                [placeholder]="activeChannel === 'public' ? 'Message customer...' : 'Record private internal note...'"
+                [placeholder]="activeChannel === 'public' ? 'Message customer (Press Enter to send)...' : 'Record private internal note (Press Enter to send)...'"
                 [(ngModel)]="composerText"
                 name="composerText"
                 rows="3"
                 required
+                (keydown)="onComposerKeyDown($event)"
                 [disabled]="isSubmitting"
                 [class.internal-textarea]="activeChannel === 'internal'"
               ></textarea>
@@ -832,6 +832,15 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
         this.scrollContainer.nativeElement.scrollTop = this.scrollContainer.nativeElement.scrollHeight;
       }
     } catch (err) {}
+  }
+
+  onComposerKeyDown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      if (this.composerText.trim() && !this.isSubmitting) {
+        this.sendReply();
+      }
+    }
   }
 
   sendReply(): void {

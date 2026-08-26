@@ -251,10 +251,18 @@ export const TicketDetails: React.FC = () => {
                 <form onSubmit={handleSendReply} style={styles.composerForm}>
                   <textarea
                     className="form-control"
-                    placeholder="Type a message to the support team..."
+                    placeholder="Type a message to the support team (Press Enter to send, Shift+Enter for newline)..."
                     rows={3}
                     value={newReply}
                     onChange={(e) => setNewReply(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (newReply.trim() && !isSending) {
+                          handleSendReply(e);
+                        }
+                      }
+                    }}
                     disabled={isSending}
                     style={{ resize: 'none' }}
                   />

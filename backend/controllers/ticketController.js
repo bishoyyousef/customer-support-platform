@@ -42,7 +42,12 @@ async function getTicketById(req, res, next) {
     const isCustomer = req.user.role === 'customer';
     const messages = await messageRepository.findByTicketId(ticket.id, isCustomer);
 
-    const responseTicket = { ...ticket, messages };
+    let activityTimeline = ticket.activityTimeline || [];
+    if (isCustomer) {
+      activityTimeline = activityTimeline.filter(e => e.type !== 'note');
+    }
+
+    const responseTicket = { ...ticket, messages, activityTimeline };
     delete responseTicket._id;
     responseTicket.messages.forEach(m => delete m._id);
 
@@ -248,12 +253,7 @@ async function postMessage(req, res, next) {
     await messageRepository.create(newMessage);
 
     const updateFields = { updatedAt: now };
-    let timelineEvent = {
-      type: 'reply',
-      message: `${req.user.name} added a reply`,
-      timestamp: now,
-      actorName: req.user.name
-    };
+    let timelineEvent = null;
 
     if (req.user.role === 'customer' && ticket.status !== 'requires_attention') {
       const oldStatus = ticket.status;
@@ -309,14 +309,7 @@ async function postNote(req, res, next) {
 
     await messageRepository.create(newNote);
 
-    const timelineEvent = {
-      type: 'note',
-      message: `${req.user.name} recorded an internal team note`,
-      timestamp: now,
-      actorName: req.user.name
-    };
-
-    await ticketRepository.update(ticket.id, { updatedAt: now }, timelineEvent);
+    await ticketRepository.update(ticket.id, { updatedAt: now }, null);
 
     delete newNote._id;
     return res.status(200).json(newNote);

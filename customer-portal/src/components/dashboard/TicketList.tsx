@@ -60,22 +60,6 @@ export const TicketList: React.FC<TicketListProps> = ({
     }
   };
 
-  if (isLoading) {
-    return (
-      <div>
-        <div style={styles.filterBar}>
-          <div className="skeleton" style={{ height: '36px', width: '200px' }}></div>
-          <div className="skeleton" style={{ height: '36px', width: '120px' }}></div>
-        </div>
-        <div style={styles.list}>
-          {[1, 2, 3].map(i => (
-            <div key={i} className="card skeleton" style={{ height: '110px', marginBottom: '1rem' }}></div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div>
       {/* Search & Filter Toolbar */}
@@ -131,7 +115,13 @@ export const TicketList: React.FC<TicketListProps> = ({
 
       {/* List */}
       <div style={styles.list}>
-        {tickets.length === 0 ? (
+        {isLoading ? (
+          <>
+            {[1, 2, 3].map(i => (
+              <div key={i} className="card skeleton" style={{ height: '110px', marginBottom: '1rem' }}></div >
+            ))}
+          </>
+        ) : tickets.length === 0 ? (
           <div className="card" style={styles.emptyCard}>
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="1.5">
               <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>

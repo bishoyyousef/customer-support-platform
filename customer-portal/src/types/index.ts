@@ -17,6 +17,14 @@ export interface ActivityEvent {
   actorName: string;
 }
 
+export interface Attachment {
+  id: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+  storagePath: string;
+}
+
 export interface Message {
   id: string;
   senderId: string;
@@ -25,6 +33,7 @@ export interface Message {
   content: string;
   timestamp: string;
   isInternal: boolean;
+  attachment?: Attachment;
 }
 
 export interface Ticket {

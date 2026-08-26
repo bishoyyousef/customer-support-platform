@@ -51,12 +51,7 @@ async function uploadAttachment(req, res, next) {
         await messageRepository.create(newMessage);
 
         const updateFields = { updatedAt: now };
-        let timelineEvent = {
-          type: isInternal ? 'note' : 'reply',
-          message: `${req.user.name} uploaded an attachment: ${req.file.originalname}`,
-          timestamp: now,
-          actorName: req.user.name
-        };
+        let timelineEvent = null;
 
         if (req.user.role === 'customer' && !isInternal && ticket.status !== 'requires_attention') {
           const oldStatus = ticket.status;
