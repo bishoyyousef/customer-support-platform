@@ -20,6 +20,38 @@ interface TicketListProps {
   onClearFilters: () => void;
 }
 
+const HighlightText: React.FC<{ text: string; query: string }> = ({ text, query }) => {
+  if (!query || !query.trim()) {
+    return <>{text}</>;
+  }
+  const q = query.trim();
+  const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escaped})`, 'gi');
+  const parts = text.split(regex);
+
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === q.toLowerCase() ? (
+          <mark
+            key={i}
+            style={{
+              backgroundColor: 'rgba(250, 204, 21, 0.4)',
+              color: 'inherit',
+              padding: '0 2px',
+              borderRadius: '2px'
+            }}
+          >
+            {part}
+          </mark>
+        ) : (
+          part
+        )
+      )}
+    </>
+  );
+};
+
 export const TicketList: React.FC<TicketListProps> = ({
   tickets,
   isLoading,
@@ -231,8 +263,10 @@ export const TicketList: React.FC<TicketListProps> = ({
               <div key={t.id} className="card" style={styles.ticketCard}>
                 <div style={styles.cardHeader}>
                   <div style={styles.titleArea}>
-                    <span style={styles.refId}>{t.id}</span>
-                    <Link to={`/ticket/${t.id}`} style={styles.ticketTitle}>{t.title}</Link>
+                    <span style={styles.refId}><HighlightText text={t.id} query={searchQuery} /></span>
+                    <Link to={`/ticket/${t.id}`} style={styles.ticketTitle}>
+                      <HighlightText text={t.title} query={searchQuery} />
+                    </Link>
                   </div>
                   <div style={styles.badgeArea}>
                     <span className={getUrgencyBadgeClass(t.urgency)}>{t.urgency} Priority</span>

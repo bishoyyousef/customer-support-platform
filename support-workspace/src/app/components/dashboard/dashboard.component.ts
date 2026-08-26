@@ -6,11 +6,12 @@ import { BehaviorSubject, Observable, combineLatest, map, Subscription, debounce
 import { TicketService } from '../../core/services/ticket.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Ticket, TicketStatus } from '../../core/models';
+import { HighlightPipe } from '../../shared/pipes/highlight.pipe';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, HighlightPipe],
   template: `
     <div class="dashboard-viewport">
       <!-- Summary Bar -->
@@ -203,11 +204,11 @@ import { Ticket, TicketStatus } from '../../core/models';
           <tbody>
             <tr *ngFor="let t of filteredTickets$ | async">
               <td class="ref-cell">
-                <span class="ref-badge">{{ t.id }}</span>
+                <span class="ref-badge" [innerHTML]="t.id | highlight:(searchQuery$ | async)"></span>
               </td>
               <td>
-                <a [routerLink]="['/tickets', t.id]" class="ticket-subject">{{ t.title }}</a>
-                <div class="customer-subtitle">by {{ t.customerName }}</div>
+                <a [routerLink]="['/tickets', t.id]" class="ticket-subject" [innerHTML]="t.title | highlight:(searchQuery$ | async)"></a>
+                <div class="customer-subtitle">by <span [innerHTML]="t.customerName | highlight:(searchQuery$ | async)"></span></div>
               </td>
               <td>{{ t.category }}</td>
               <td>
