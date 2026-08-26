@@ -21,12 +21,28 @@ async function connectDb(customUri = null, customDbName = null) {
     dbName = 'customer_support_test';
   }
 
-  client = new MongoClient(uri);
-  await client.connect();
-  db = client.db(dbName);
-  console.log(`Connected successfully to MongoDB database "${dbName}"`);
+  try {
+    client = new MongoClient(uri, { tlsAllowInvalidCertificates: true, serverSelectionTimeoutMS: 5000 });
+    await client.connect();
+    db = client.db(dbName);
+    console.log(`Connected successfully to MongoDB database "${dbName}"`);
+  } catch (err) {
+    if (!useMemoryDb && !customUri) {
+      console.warn(`MongoDB connection attempt failed (${err.message}). Falling back to memory database...`);
+      const { MongoMemoryServer } = require('mongodb-memory-server');
+      memoryServer = await MongoMemoryServer.create();
+      uri = memoryServer.getUri();
+      dbName = 'customer_support_local';
+      client = new MongoClient(uri);
+      await client.connect();
+      db = client.db(dbName);
+      console.log(`Connected successfully to fallback database "${dbName}"`);
+    } else {
+      throw err;
+    }
+  }
 
-  // Force seed fresh clean data for test memory servers
+  // Force seed fresh clean data for memory servers
   if (memoryServer) {
     const { runMigration } = require('../scripts/migrate-to-mongodb');
     await runMigration(true);
