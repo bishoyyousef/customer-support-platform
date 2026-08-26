@@ -9,11 +9,12 @@ let memoryServer = null;
 async function connectDb(customUri = null, customDbName = null) {
   if (db) return db;
 
-  let uri = customUri || process.env.MONGODB_URI;
+  const useMemoryDb = process.env.USE_MEMORY_DB === 'true' || process.env.NODE_ENV === 'test';
+  let uri = useMemoryDb ? null : (customUri || process.env.MONGODB_URI);
   let dbName = customDbName || process.env.MONGODB_DB_NAME || 'customer_support';
 
   if (!uri) {
-    console.log('MONGODB_URI environment variable not set. Launching MongoMemoryServer instance for dev/testing...');
+    console.log('Using MongoMemoryServer instance for testing/isolated environment...');
     const { MongoMemoryServer } = require('mongodb-memory-server');
     memoryServer = await MongoMemoryServer.create();
     uri = memoryServer.getUri();

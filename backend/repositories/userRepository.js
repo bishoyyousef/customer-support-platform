@@ -1,4 +1,4 @@
-const { getDb } = require('../database/connection');
+const { getDb } = require('../database/connection').default;
 
 class UserRepository {
   get collection() {

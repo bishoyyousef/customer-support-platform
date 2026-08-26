@@ -44,3 +44,32 @@ export interface Ticket {
   activityTimeline: ActivityEvent[];
   messages: Message[];
 }
+
+export interface AgentWorkload {
+  id: string;
+  name: string;
+  activeCount: number;
+  resolvedCount: number;
+  workloadPercent: number;
+}
+
+export interface SummaryTotals {
+  total: number;
+  active: number;
+  resolved: number;
+  pending: number;
+  unassigned: number;
+  requiresAttention: number;
+}
+
+export interface UrgencyBreakdown {
+  High: number;
+  Medium: number;
+  Low: number;
+}
+
+export interface ManagerSummary {
+  totals: SummaryTotals;
+  agentWorkloads: AgentWorkload[];
+  urgencyBreakdown: UrgencyBreakdown;
+}

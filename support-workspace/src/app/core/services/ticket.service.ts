@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap, map } from 'rxjs';
-import { Ticket } from '../models';
+import { Ticket, ManagerSummary } from '../models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -102,5 +102,9 @@ export class TicketService {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<any>(`${this.apiUrl}/${ticketId}/attachments?isInternal=${isInternal}`, formData);
+  }
+
+  getManagerSummary(): Observable<ManagerSummary> {
+    return this.http.get<ManagerSummary>(`${environment.apiUrl}/manager/summary`);
   }
 }

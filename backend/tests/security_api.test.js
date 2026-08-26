@@ -47,23 +47,29 @@ describe('Backend Security & Business Rules API Test Suite', () => {
   before(async () => {
     backupDb();
     
-    // Check if backend server is already running on port 5000
-    const running5000 = await isServerRunning('http://localhost:5000/');
-    if (running5000) {
-      PORT = 5000;
-      BASE_URL = `http://localhost:${PORT}/api`;
-    } else {
-      PORT = 5005;
-      BASE_URL = `http://localhost:${PORT}/api`;
-      serverProcess = spawn(process.execPath, ['server.js'], {
-        cwd: path.join(__dirname, '..'),
-        env: { ...process.env, PORT: PORT.toString() },
-        stdio: ['ignore', 'ignore', 'inherit']
-      });
-      const ok = await waitForServer(PORT);
-      if (!ok) {
-        throw new Error(`Server failed to start on port ${PORT}`);
-      }
+    const net = require('net');
+    const isPortAvailable = (port) => new Promise(resolve => {
+      const s = net.createServer();
+      s.once('error', () => resolve(false));
+      s.once('listening', () => { s.close(() => resolve(true)); });
+      s.listen(port);
+    });
+
+    let testPort = 5005;
+    while (!(await isPortAvailable(testPort)) && testPort < 5030) {
+      testPort++;
+    }
+
+    PORT = testPort;
+    BASE_URL = `http://localhost:${PORT}/api`;
+    serverProcess = spawn(process.execPath, ['server.js'], {
+      cwd: path.join(__dirname, '..'),
+      env: { ...process.env, PORT: PORT.toString(), NODE_ENV: 'test', USE_MEMORY_DB: 'true' },
+      stdio: ['ignore', 'ignore', 'inherit']
+    });
+    const ok = await waitForServer(PORT, 80);
+    if (!ok) {
+      throw new Error(`Server failed to start on port ${PORT}`);
     }
   });
 
@@ -479,5 +485,31 @@ describe('Backend Security & Business Rules API Test Suite', () => {
     assert.strictEqual(validTransRes.status, 200);
     const reopenedTicket = await validTransRes.json();
     assert.strictEqual(reopenedTicket.status, 'requires_attention');
+  });
+
+  // 8. Phase 4: Manager Aggregation Tests
+  test('GET /api/manager/summary returns 200 for manager and 403 for agent/customer', async () => {
+    // 1. Customer -> 403 Forbidden
+    const custRes = await fetch(`${BASE_URL}/manager/summary`, {
+      headers: { 'Authorization': 'Bearer mock-jwt-token-for-alice' }
+    });
+    assert.strictEqual(custRes.status, 403);
+
+    // 2. Support Agent -> 403 Forbidden
+    const agentRes = await fetch(`${BASE_URL}/manager/summary`, {
+      headers: { 'Authorization': 'Bearer mock-jwt-token-for-agent_charlie' }
+    });
+    assert.strictEqual(agentRes.status, 403);
+
+    // 3. Manager -> 200 OK with aggregated metrics payload
+    const mgrRes = await fetch(`${BASE_URL}/manager/summary`, {
+      headers: { 'Authorization': 'Bearer mock-jwt-token-for-manager_eve' }
+    });
+    assert.strictEqual(mgrRes.status, 200);
+    const summary = await mgrRes.json();
+    assert.ok(summary.totals);
+    assert.strictEqual(typeof summary.totals.total, 'number');
+    assert.ok(Array.isArray(summary.agentWorkloads));
+    assert.ok(summary.urgencyBreakdown);
   });
 });

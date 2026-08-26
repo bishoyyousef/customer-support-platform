@@ -227,44 +227,26 @@ export class ManagerSummaryComponent implements OnInit {
   unassignedTickets = 0;
   resolvedTickets = 0;
   agentWorkloads: AgentWorkload[] = [];
+  isLoading = true;
+  errorMessage = '';
 
   constructor(private ticketService: TicketService) {}
 
   ngOnInit(): void {
-    this.ticketService.fetchTickets().subscribe({
-      next: (tickets) => {
-        this.calculateMetrics(tickets);
+    this.isLoading = true;
+    this.ticketService.getManagerSummary().subscribe({
+      next: (summary) => {
+        this.totalTickets = summary.totals.total;
+        this.activeTickets = summary.totals.active;
+        this.unassignedTickets = summary.totals.unassigned;
+        this.resolvedTickets = summary.totals.resolved;
+        this.agentWorkloads = summary.agentWorkloads;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.errorMessage = err.error?.message || 'Failed to load manager summary analytics.';
+        this.isLoading = false;
       }
-    });
-  }
-
-  private calculateMetrics(tickets: Ticket[]): void {
-    this.totalTickets = tickets.length;
-    this.activeTickets = tickets.filter(t => t.status !== 'resolved').length;
-    this.resolvedTickets = tickets.filter(t => t.status === 'resolved').length;
-    this.unassignedTickets = tickets.filter(t => !t.assignedTo).length;
-
-    // Define agent list
-    const agents = [
-      { id: 'agent_1', name: 'Charlie Davis' },
-      { id: 'agent_2', name: 'Diana Evans' }
-    ];
-
-    // Compute workload per agent
-    const activeAssignedCount = tickets.filter(t => t.assignedTo && t.status !== 'resolved').length;
-
-    this.agentWorkloads = agents.map(agent => {
-      const activeCount = tickets.filter(t => t.assignedTo === agent.id && t.status !== 'resolved').length;
-      const resolvedCount = tickets.filter(t => t.assignedTo === agent.id && t.status === 'resolved').length;
-      const workloadPercent = activeAssignedCount > 0 ? (activeCount / activeAssignedCount) * 100 : 0;
-
-      return {
-        id: agent.id,
-        name: agent.name,
-        activeCount,
-        resolvedCount,
-        workloadPercent
-      };
     });
   }
 }

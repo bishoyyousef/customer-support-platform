@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 
-const { connectDb } = require('./database/connection');
+const { connectDb } = require('./database/connection').default;
 const userRepository = require('./repositories/userRepository');
 const ticketRepository = require('./repositories/ticketRepository');
 const messageRepository = require('./repositories/messageRepository');
@@ -57,7 +57,7 @@ async function authenticate(req, res, next) {
   try {
     let token = null;
     const authHeader = req.headers['authorization'] || req.headers['Authorization'];
-    
+
     if (authHeader && authHeader.startsWith('Bearer ')) {
       token = authHeader.substring(7);
     } else if (req.query.token) {
@@ -67,7 +67,7 @@ async function authenticate(req, res, next) {
     if (!token) {
       return res.status(401).json({ message: 'Unauthorized: Missing or invalid token' });
     }
-    
+
     let username = token;
     if (token.startsWith('mock-jwt-token-for-')) {
       username = token.replace('mock-jwt-token-for-', '');
@@ -183,7 +183,7 @@ app.get('/api/tickets', authenticate, async (req, res, next) => {
     res.setHeader('X-Pagination-Active-Count', activeCount);
     res.setHeader('X-Pagination-Pending-Count', pendingCount);
     res.setHeader('X-Pagination-Resolved-Count', resolvedCount);
-    
+
     res.setHeader(
       'Access-Control-Expose-Headers',
       'X-Pagination-Page, X-Pagination-Limit, X-Pagination-Total-Count, X-Pagination-Total-Pages, X-Pagination-Active-Count, X-Pagination-Pending-Count, X-Pagination-Resolved-Count'
@@ -609,6 +609,22 @@ app.get('/api/attachments/:attachmentId', authenticate, async (req, res, next) =
     res.setHeader('Content-Type', msg.attachment.mimeType);
     res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(msg.attachment.filename)}"`);
     return res.sendFile(filePath);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 10. Manager Visibility: Aggregated Summary Endpoint
+app.get('/api/manager/summary', authenticate, async (req, res, next) => {
+  try {
+    if (req.user.role !== 'manager') {
+      return res.status(403).json({ message: 'Forbidden: Only managers can view manager summary analytics' });
+    }
+
+    const staffList = await userRepository.getAgentsAndManagers();
+    const summary = await ticketRepository.getManagerSummary(staffList);
+
+    return res.status(200).json(summary);
   } catch (err) {
     next(err);
   }

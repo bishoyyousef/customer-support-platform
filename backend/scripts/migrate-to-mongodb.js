@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { connectDb, closeDb } = require('../database/connection');
+const { connectDb, closeDb } = require('../database/connection').default;
 const userRepository = require('../repositories/userRepository');
 const ticketRepository = require('../repositories/ticketRepository');
 const messageRepository = require('../repositories/messageRepository');
@@ -44,14 +44,14 @@ async function runMigration(force = false) {
   const existingTicketsCount = await ticketRepository.collection.countDocuments();
   if (existingTicketsCount === 0 && dbData.tickets && dbData.tickets.length > 0) {
     console.log(`Migrating ${dbData.tickets.length} tickets and their messages...`);
-    
+
     const ticketsToInsert = [];
     const messagesToInsert = [];
 
     for (const ticket of dbData.tickets) {
       const ticketCopy = { ...ticket };
       const messages = ticketCopy.messages || [];
-      
+
       messages.forEach(msg => {
         messagesToInsert.push({
           ...msg,

@@ -1,4 +1,4 @@
-const { getDb } = require('../database/connection');
+const { getDb } = require('../database/connection').default;
 
 class TicketRepository {
   get collection() {
@@ -31,7 +31,7 @@ class TicketRepository {
     // 2. Compute overall status counts for scoped user (before search/filter/pagination)
     const baseQuery = { ...query };
     const allScopedTickets = await this.collection.find(baseQuery).toArray();
-    
+
     const activeCount = allScopedTickets.filter(t => t.status === 'requires_attention' || t.status === 'under_investigation').length;
     const pendingCount = allScopedTickets.filter(t => t.status === 'pending_customer').length;
     const resolvedCount = allScopedTickets.filter(t => t.status === 'resolved').length;
@@ -103,7 +103,7 @@ class TicketRepository {
       // We retrieve matching tickets and apply urgency sorting with tie-breaker
       const matchingTickets = await this.collection.find(query).toArray();
       const urgencyWeight = { High: 3, Medium: 2, Low: 1 };
-      
+
       matchingTickets.sort((a, b) => {
         const wA = urgencyWeight[a.urgency] || 0;
         const wB = urgencyWeight[b.urgency] || 0;
@@ -186,6 +186,54 @@ class TicketRepository {
   async insertMany(tickets) {
     if (!tickets || tickets.length === 0) return;
     return await this.collection.insertMany(tickets);
+  }
+
+  async getManagerSummary(staffList = []) {
+    const allTickets = await this.collection.find({}).toArray();
+
+    const total = allTickets.length;
+    const active = allTickets.filter(t => t.status === 'requires_attention' || t.status === 'under_investigation').length;
+    const resolved = allTickets.filter(t => t.status === 'resolved').length;
+    const pending = allTickets.filter(t => t.status === 'pending_customer').length;
+    const unassigned = allTickets.filter(t => !t.assignedTo).length;
+    const requiresAttention = allTickets.filter(t => t.status === 'requires_attention').length;
+
+    const totals = {
+      total,
+      active,
+      resolved,
+      pending,
+      unassigned,
+      requiresAttention
+    };
+
+    const totalActiveAssigned = allTickets.filter(t => t.assignedTo && (t.status === 'requires_attention' || t.status === 'under_investigation')).length;
+
+    const agentWorkloads = staffList.map(staff => {
+      const activeCount = allTickets.filter(t => t.assignedTo === staff.id && (t.status === 'requires_attention' || t.status === 'under_investigation')).length;
+      const resolvedCount = allTickets.filter(t => t.assignedTo === staff.id && t.status === 'resolved').length;
+      const workloadPercent = totalActiveAssigned > 0 ? parseFloat(((activeCount / totalActiveAssigned) * 100).toFixed(2)) : 0;
+
+      return {
+        id: staff.id,
+        name: staff.name,
+        activeCount,
+        resolvedCount,
+        workloadPercent
+      };
+    });
+
+    const urgencyBreakdown = {
+      High: allTickets.filter(t => t.urgency === 'High').length,
+      Medium: allTickets.filter(t => t.urgency === 'Medium').length,
+      Low: allTickets.filter(t => t.urgency === 'Low').length
+    };
+
+    return {
+      totals,
+      agentWorkloads,
+      urgencyBreakdown
+    };
   }
 }
 
