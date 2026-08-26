@@ -413,4 +413,71 @@ describe('Backend Security & Business Rules API Test Suite', () => {
     });
     assert.strictEqual(res.status, 400);
   });
+
+  // 7. Phase 3: Backend Hardening Tests
+  test('Resolved tickets block messages & notes, and enforce status transition matrix', async () => {
+    // 1. Resolve TKT-1001
+    const resolveRes = await fetch(`${BASE_URL}/tickets/TKT-1001`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': 'Bearer mock-jwt-token-for-manager_eve',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        status: 'resolved',
+        resolutionSummary: 'Issue resolved successfully by support team.'
+      })
+    });
+    assert.strictEqual(resolveRes.status, 200);
+
+    // 2. Agent posting message on resolved ticket -> 400 Bad Request
+    const msgRes = await fetch(`${BASE_URL}/tickets/TKT-1001/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer mock-jwt-token-for-agent_charlie',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ content: 'Trying to reply to resolved ticket' })
+    });
+    assert.strictEqual(msgRes.status, 400);
+    const msgData = await msgRes.json();
+    assert.strictEqual(msgData.message, 'Cannot add messages to a resolved ticket. Reopen it first.');
+
+    // 3. Post internal note on resolved ticket -> 400 Bad Request
+    const noteRes = await fetch(`${BASE_URL}/tickets/TKT-1001/notes`, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer mock-jwt-token-for-agent_charlie',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ content: 'Trying to add internal note to resolved ticket' })
+    });
+    assert.strictEqual(noteRes.status, 400);
+    const noteData = await noteRes.json();
+    assert.strictEqual(noteData.message, 'Cannot add internal notes to a resolved ticket. Reopen it first.');
+
+    // 4. Invalid status transition: resolved -> under_investigation -> 400 Bad Request
+    const invalidTransRes = await fetch(`${BASE_URL}/tickets/TKT-1001`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': 'Bearer mock-jwt-token-for-manager_eve',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status: 'under_investigation' })
+    });
+    assert.strictEqual(invalidTransRes.status, 400);
+
+    // 5. Valid status transition (reopen): resolved -> requires_attention -> 200 OK
+    const validTransRes = await fetch(`${BASE_URL}/tickets/TKT-1001`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': 'Bearer mock-jwt-token-for-manager_eve',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status: 'requires_attention' })
+    });
+    assert.strictEqual(validTransRes.status, 200);
+    const reopenedTicket = await validTransRes.json();
+    assert.strictEqual(reopenedTicket.status, 'requires_attention');
+  });
 });

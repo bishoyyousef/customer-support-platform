@@ -305,6 +305,20 @@ app.patch('/api/tickets/:id', authenticate, async (req, res, next) => {
 
     // Status transitions
     if (req.body.status !== undefined && req.body.status !== ticket.status) {
+      const validTransitions = {
+        'requires_attention': ['under_investigation', 'pending_customer', 'resolved'],
+        'under_investigation': ['requires_attention', 'pending_customer', 'resolved'],
+        'pending_customer': ['requires_attention', 'under_investigation', 'resolved'],
+        'resolved': ['requires_attention']
+      };
+
+      const allowed = validTransitions[ticket.status] || [];
+      if (!allowed.includes(req.body.status)) {
+        return res.status(400).json({
+          message: `Cannot transition from '${ticket.status}' to '${req.body.status}'`
+        });
+      }
+
       if (req.body.status === 'resolved') {
         const summary = req.body.resolutionSummary || req.body.resolutionText;
         if (!summary || typeof summary !== 'string' || summary.trim().length < 10 || summary.trim().length > 1000) {
@@ -323,7 +337,7 @@ app.patch('/api/tickets/:id', authenticate, async (req, res, next) => {
     }
 
     // Assignments
-    if (req.body.assignedTo !== undefined && req.body.assignedTo !== ticket.assignedTo) {
+    if (req.body.assignedTo !== undefined) {
       const targetAgentId = req.body.assignedTo;
 
       if (req.user.role === 'customer') {
@@ -336,27 +350,29 @@ app.patch('/api/tickets/:id', authenticate, async (req, res, next) => {
         }
       }
 
-      let targetAgentName = null;
-      if (targetAgentId) {
-        const targetAgent = await userRepository.findById(targetAgentId);
-        if (!targetAgent || (targetAgent.role !== 'agent' && targetAgent.role !== 'manager')) {
-          return res.status(400).json({ message: 'Invalid assignee ID' });
+      if (req.body.assignedTo !== ticket.assignedTo) {
+        let targetAgentName = null;
+        if (targetAgentId) {
+          const targetAgent = await userRepository.findById(targetAgentId);
+          if (!targetAgent || (targetAgent.role !== 'agent' && targetAgent.role !== 'manager')) {
+            return res.status(400).json({ message: 'Invalid assignee ID' });
+          }
+          targetAgentName = targetAgent.name;
         }
-        targetAgentName = targetAgent.name;
+
+        const prevAgentName = ticket.assignedName || 'Unassigned';
+        const newAgentName = targetAgentName || 'Unassigned';
+
+        updateFields.assignedTo = targetAgentId;
+        updateFields.assignedName = targetAgentName;
+
+        timelineEvent = {
+          type: 'assignment',
+          message: `Assignment changed from '${prevAgentName}' to '${newAgentName}' by ${req.user.name}`,
+          timestamp: now,
+          actorName: req.user.name
+        };
       }
-
-      const prevAgentName = ticket.assignedName || 'Unassigned';
-      const newAgentName = targetAgentName || 'Unassigned';
-
-      updateFields.assignedTo = targetAgentId;
-      updateFields.assignedName = targetAgentName;
-
-      timelineEvent = {
-        type: 'assignment',
-        message: `Assignment changed from '${prevAgentName}' to '${newAgentName}' by ${req.user.name}`,
-        timestamp: now,
-        actorName: req.user.name
-      };
     }
 
     const updatedTicket = await ticketRepository.update(ticket.id, updateFields, timelineEvent);
@@ -379,6 +395,10 @@ app.post('/api/tickets/:id/messages', authenticate, async (req, res, next) => {
     const ticket = await ticketRepository.findById(req.params.id);
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    if (ticket.status === 'resolved' && req.user.role !== 'customer') {
+      return res.status(400).json({ message: 'Cannot add messages to a resolved ticket. Reopen it first.' });
     }
 
     if (req.user.role === 'customer' && ticket.customerId !== req.user.id) {
@@ -442,6 +462,10 @@ app.post('/api/tickets/:id/notes', authenticate, async (req, res, next) => {
     const ticket = await ticketRepository.findById(req.params.id);
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    if (ticket.status === 'resolved') {
+      return res.status(400).json({ message: 'Cannot add internal notes to a resolved ticket. Reopen it first.' });
     }
 
     const now = new Date().toISOString();
