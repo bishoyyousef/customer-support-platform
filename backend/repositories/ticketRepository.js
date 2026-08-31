@@ -245,6 +245,57 @@ class TicketRepository {
       urgencyBreakdown
     };
   }
+
+  async getSuggestions(queryText = '', user) {
+    if (!queryText || !queryText.trim()) {
+      return [];
+    }
+
+    const qLower = queryText.trim().toLowerCase();
+    const escaped = qLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escaped, 'i');
+
+    const query = {};
+    if (user && user.role === 'customer') {
+      query.customerId = user.id;
+    }
+
+    query.$or = [
+      { id: regex },
+      { title: regex },
+      { category: regex },
+      { customerName: regex },
+      { description: regex }
+    ];
+
+    const matchingTickets = await this.collection.find(query).limit(10).toArray();
+
+    const suggestions = [];
+
+    // Category suggestions
+    const categories = ['Billing', 'Technical', 'Account', 'General', 'Other'];
+    for (const cat of categories) {
+      if (cat.toLowerCase().includes(qLower)) {
+        suggestions.push({
+          type: 'category',
+          text: cat,
+          subtext: 'Category'
+        });
+      }
+    }
+
+    // Ticket suggestions
+    for (const ticket of matchingTickets) {
+      suggestions.push({
+        type: 'ticket',
+        text: ticket.title,
+        subtext: `#${ticket.id} • ${ticket.category}`,
+        ticketId: ticket.id
+      });
+    }
+
+    return suggestions.slice(0, 6);
+  }
 }
 
 module.exports = new TicketRepository();

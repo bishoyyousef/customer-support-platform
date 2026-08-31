@@ -4,6 +4,7 @@ const ticketController = require('../controllers/ticketController');
 const { authenticate } = require('../middleware/auth');
 
 router.get('/', authenticate, ticketController.getTickets);
+router.get('/suggestions', authenticate, ticketController.getSuggestions);
 router.get('/:id', authenticate, ticketController.getTicketById);
 router.post('/', authenticate, ticketController.createTicket);
 router.patch('/:id', authenticate, ticketController.updateTicket);

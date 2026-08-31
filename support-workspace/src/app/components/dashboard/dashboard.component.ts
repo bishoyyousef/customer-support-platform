@@ -42,43 +42,78 @@ import { HighlightPipe } from '../../shared/pipes/highlight.pipe';
               (keydown)="onSearchKeyDown($event)"
             />
 
-            <!-- Search History Dropdown -->
+            <!-- Search Autocomplete & History Dropdown -->
             <div
-              *ngIf="showHistoryDropdown && searchHistory.length > 0"
+              *ngIf="showHistoryDropdown && (isSuggestionMode || searchHistory.length > 0)"
               class="card"
               style="position: absolute; top: 42px; left: 0; right: 0; z-index: 105; padding: 0.5rem 0; box-shadow: 0 8px 20px rgba(0,0,0,0.15); border: 1px solid var(--color-border); background-color: var(--color-bg-surface, #ffffff);"
               (mousedown)="$event.preventDefault()"
             >
-              <div style="padding: 0.25rem 0.75rem 0.5rem; font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); display: flex; justify-content: space-between; align-items: center;">
-                <span>RECENT SEARCHES</span>
-                <button
-                  type="button"
-                  (click)="clearSearchHistory($event)"
-                  style="background: none; border: none; color: var(--color-primary); font-size: 0.75rem; cursor: pointer; padding: 0;"
+              <ng-container *ngIf="isSuggestionMode; else historyTpl">
+                <div style="padding: 0.25rem 0.75rem 0.5rem; font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted);">
+                  SUGGESTIONS
+                </div>
+                <div
+                  *ngFor="let item of suggestions; let i = index"
+                  (click)="selectSuggestionItem(item)"
+                  (mouseenter)="activeIndex = i"
+                  [style.backgroundColor]="i === activeIndex ? 'var(--color-bg-subtle, #f3f4f6)' : 'transparent'"
+                  style="padding: 0.5rem 0.75rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 0.85rem;"
                 >
-                  Clear All
-                </button>
-              </div>
-              <div
-                *ngFor="let item of searchHistory"
-                (click)="selectHistoryItem(item)"
-                style="padding: 0.4rem 0.75rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 0.85rem;"
-              >
-                <span style="display: inline-flex; align-items: center; gap: 0.5rem;">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
-                  </svg>
-                  {{ item }}
-                </span>
-                <button
-                  type="button"
-                  (click)="removeFromHistory(item, $event)"
-                  style="background: none; border: none; color: var(--color-text-muted); font-size: 1rem; cursor: pointer; line-height: 1;"
+                  <div style="display: flex; flex-direction: column; gap: 0.1rem;">
+                    <span style="font-weight: 500; display: inline-flex; align-items: center; gap: 0.4rem;">
+                      <svg *ngIf="item.type === 'category'" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                      </svg>
+                      <svg *ngIf="item.type !== 'category'" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                      </svg>
+                      <span [innerHTML]="item.text | highlight:(searchQuery$ | async)"></span>
+                    </span>
+                    <span *ngIf="item.subtext" style="font-size: 0.75rem; color: var(--color-text-muted); margin-left: 1.25rem;">
+                      {{ item.subtext }}
+                    </span>
+                  </div>
+                  <span class="badge" style="font-size: 0.7rem; padding: 0.15rem 0.4rem; text-transform: capitalize;">
+                    {{ item.type }}
+                  </span>
+                </div>
+              </ng-container>
+              <ng-template #historyTpl>
+                <div style="padding: 0.25rem 0.75rem 0.5rem; font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); display: flex; justify-content: space-between; align-items: center;">
+                  <span>RECENT SEARCHES</span>
+                  <button
+                    type="button"
+                    (click)="clearSearchHistory($event)"
+                    style="background: none; border: none; color: var(--color-primary); font-size: 0.75rem; cursor: pointer; padding: 0;"
+                  >
+                    Clear All
+                  </button>
+                </div>
+                <div
+                  *ngFor="let item of searchHistory; let i = index"
+                  (click)="selectHistoryItem(item)"
+                  (mouseenter)="activeIndex = i"
+                  [style.backgroundColor]="i === activeIndex ? 'var(--color-bg-subtle, #f3f4f6)' : 'transparent'"
+                  style="padding: 0.4rem 0.75rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 0.85rem;"
                 >
-                  &times;
-                </button>
-              </div>
+                  <span style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    {{ item }}
+                  </span>
+                  <button
+                    type="button"
+                    (click)="removeFromHistory(item, $event)"
+                    style="background: none; border: none; color: var(--color-text-muted); font-size: 1rem; cursor: pointer; line-height: 1;"
+                  >
+                    &times;
+                  </button>
+                </div>
+              </ng-template>
             </div>
           </div>
 
@@ -701,7 +736,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   searchHistory: string[] = [];
+  suggestions: { type: string; text: string; subtext?: string; ticketId?: string }[] = [];
   showHistoryDropdown = false;
+  activeIndex = -1;
+
+  get isSuggestionMode(): boolean {
+    return this.searchQuery$.value.trim().length >= 1 && this.suggestions.length > 0;
+  }
+
+  get navItemsCount(): number {
+    return this.isSuggestionMode ? this.suggestions.length : this.searchHistory.length;
+  }
 
   loadSearchHistory(): void {
     this.ticketService.getSearchHistory().subscribe({
@@ -747,8 +792,33 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   onSearchKeyDown(event: KeyboardEvent): void {
-    if (event.key === 'Enter') {
-      this.saveToHistory(this.searchQuery$.value);
+    if (!this.showHistoryDropdown && event.key === 'ArrowDown') {
+      this.showHistoryDropdown = true;
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      this.activeIndex = this.activeIndex + 1 < this.navItemsCount ? this.activeIndex + 1 : 0;
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      this.activeIndex = this.activeIndex - 1 >= 0 ? this.activeIndex - 1 : this.navItemsCount - 1;
+    } else if (event.key === 'Enter') {
+      if (this.activeIndex >= 0 && this.activeIndex < this.navItemsCount) {
+        event.preventDefault();
+        if (this.isSuggestionMode) {
+          const selected = this.suggestions[this.activeIndex];
+          this.searchQuery$.next(selected.text);
+          this.saveToHistory(selected.text);
+        } else {
+          this.searchQuery$.next(this.searchHistory[this.activeIndex]);
+        }
+        this.showHistoryDropdown = false;
+      } else {
+        this.saveToHistory(this.searchQuery$.value);
+        this.showHistoryDropdown = false;
+      }
+    } else if (event.key === 'Escape') {
       this.showHistoryDropdown = false;
     }
   }
@@ -758,8 +828,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.showHistoryDropdown = false;
   }
 
+  selectSuggestionItem(item: { type: string; text: string; subtext?: string; ticketId?: string }): void {
+    this.searchQuery$.next(item.text);
+    this.saveToHistory(item.text);
+    this.showHistoryDropdown = false;
+  }
+
   onSearchChange(val: string): void {
     this.searchQuery$.next(val);
+    if (val.trim().length >= 1) {
+      this.ticketService.getSuggestions(val.trim()).subscribe({
+        next: (res) => this.suggestions = res,
+        error: () => this.suggestions = []
+      });
+    } else {
+      this.suggestions = [];
+    }
+    this.activeIndex = -1;
   }
 
   onCategoryChange(val: string): void {

@@ -123,4 +123,10 @@ export class TicketService {
   clearSearchHistory(): Observable<string[]> {
     return this.http.delete<string[]>(`${environment.apiUrl}/users/me/search-history`);
   }
+
+  getSuggestions(query: string): Observable<{ type: string; text: string; subtext?: string; ticketId?: string }[]> {
+    return this.http.get<{ type: string; text: string; subtext?: string; ticketId?: string }[]>(
+      `${this.apiUrl}/suggestions?q=${encodeURIComponent(query)}`
+    );
+  }
 }

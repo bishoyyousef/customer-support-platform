@@ -167,4 +167,10 @@ export const api = {
       method: 'DELETE',
     });
   },
+
+  getSuggestions: async (query: string) => {
+    return request<{ type: string; text: string; subtext?: string; ticketId?: string }[]>(
+      `tickets/suggestions?q=${encodeURIComponent(query)}`
+    );
+  },
 };

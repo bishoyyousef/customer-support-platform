@@ -318,11 +318,22 @@ async function postNote(req, res, next) {
   }
 }
 
+async function getSuggestions(req, res, next) {
+  try {
+    const queryText = req.query.q || '';
+    const suggestions = await ticketRepository.getSuggestions(queryText, req.user);
+    return res.status(200).json(suggestions);
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getTickets,
   getTicketById,
   createTicket,
   updateTicket,
   postMessage,
-  postNote
+  postNote,
+  getSuggestions
 };

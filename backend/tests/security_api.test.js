@@ -542,4 +542,14 @@ describe('Backend Security & Business Rules API Test Suite', () => {
     const finalDelList = await delRes.json();
     assert.strictEqual(finalDelList.includes('billing'), false);
   });
+
+  test('GET /api/tickets/suggestions returns matching ticket and category suggestions', async () => {
+    const res = await fetch(`${BASE_URL}/tickets/suggestions?q=bill`, {
+      headers: { 'Authorization': 'Bearer mock-jwt-token-for-alice' }
+    });
+    assert.strictEqual(res.status, 200);
+    const suggestions = await res.json();
+    assert.ok(Array.isArray(suggestions));
+    assert.ok(suggestions.some(s => s.type === 'category' && s.text === 'Billing'));
+  });
 });
