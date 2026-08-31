@@ -113,8 +113,12 @@ export const TicketList: React.FC<TicketListProps> = ({
   // Fetch dynamic suggestions when query >= 1 char
   React.useEffect(() => {
     if (searchQuery.trim().length >= 1) {
+      setShowHistoryDropdown(true);
       api.getSuggestions(searchQuery.trim())
-        .then(res => setSuggestions(res))
+        .then(res => {
+          setSuggestions(res);
+          setShowHistoryDropdown(true);
+        })
         .catch(() => setSuggestions([]));
     } else {
       setSuggestions([]);

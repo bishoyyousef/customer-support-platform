@@ -837,8 +837,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   onSearchChange(val: string): void {
     this.searchQuery$.next(val);
     if (val.trim().length >= 1) {
+      this.showHistoryDropdown = true;
       this.ticketService.getSuggestions(val.trim()).subscribe({
-        next: (res) => this.suggestions = res,
+        next: (res) => {
+          this.suggestions = res;
+          this.showHistoryDropdown = true;
+        },
         error: () => this.suggestions = []
       });
     } else {
