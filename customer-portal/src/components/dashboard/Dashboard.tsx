@@ -27,17 +27,19 @@ export const Dashboard: React.FC = () => {
   const [pendingCountVal, setPendingCountVal] = useState(0);
   const [resolvedCountVal, setResolvedCountVal] = useState(0);
 
-  // Debounce search input
+  // Debounce search input (150ms for snappy responsiveness)
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchVal(searchVal);
       setCurrentPage(1);
-    }, 300);
+    }, 150);
     return () => clearTimeout(timer);
   }, [searchVal]);
 
-  const fetchTickets = async () => {
-    setIsLoading(true);
+  const fetchTickets = async (showFullLoading = false) => {
+    if (showFullLoading) {
+      setIsLoading(true);
+    }
     setErrorMsg(null);
     try {
       let statusQuery = '';
@@ -82,9 +84,9 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  // Re-run fetching when query conditions or page changes
+  // Re-run fetching seamlessly without full UI unmounting/flicker
   useEffect(() => {
-    fetchTickets();
+    fetchTickets(tickets.length === 0);
   }, [currentPage, debouncedSearchVal, selectedCategory, selectedUrgency, activeTab]);
 
   return (

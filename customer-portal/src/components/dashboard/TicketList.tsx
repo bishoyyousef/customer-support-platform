@@ -175,7 +175,7 @@ export const TicketList: React.FC<TicketListProps> = ({
 
       {/* Ticket List Area */}
       <div style={styles.list}>
-        {isLoading ? (
+        {isLoading && tickets.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
             Loading tickets...
           </div>

@@ -649,7 +649,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.currentPage$,
       this.authService.currentUser$
     ]).pipe(
-      debounceTime(300),
+      debounceTime(50),
       distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
       switchMap(([search, category, urgency, sort, tab, page, currentUser]) => {
         if (!currentUser) return [];
@@ -834,17 +834,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.showHistoryDropdown = false;
   }
 
+  private suggestionTimer: any = null;
+
   onSearchChange(val: string): void {
     this.searchQuery$.next(val);
+    if (this.suggestionTimer) clearTimeout(this.suggestionTimer);
+
     if (val.trim().length >= 1) {
       this.showHistoryDropdown = true;
-      this.ticketService.getSuggestions(val.trim()).subscribe({
-        next: (res) => {
-          this.suggestions = res;
-          this.showHistoryDropdown = true;
-        },
-        error: () => this.suggestions = []
-      });
+      this.suggestionTimer = setTimeout(() => {
+        this.ticketService.getSuggestions(val.trim()).subscribe({
+          next: (res) => {
+            this.suggestions = res;
+            this.showHistoryDropdown = true;
+          },
+          error: () => this.suggestions = []
+        });
+      }, 150);
     } else {
       this.suggestions = [];
     }

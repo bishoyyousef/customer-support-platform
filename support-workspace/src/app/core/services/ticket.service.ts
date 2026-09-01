@@ -30,7 +30,9 @@ export class TicketService {
   constructor(private http: HttpClient) {}
 
   fetchTickets(paramsObj?: any): Observable<Ticket[]> {
-    this.loadingSubject.next(true);
+    if (this.ticketsSubject.value.length === 0) {
+      this.loadingSubject.next(true);
+    }
     let params = new HttpParams();
     if (paramsObj) {
       Object.entries(paramsObj).forEach(([key, val]) => {

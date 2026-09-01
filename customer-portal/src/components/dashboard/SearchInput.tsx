@@ -19,17 +19,20 @@ export const SearchInput: React.FC<SearchInputProps> = ({ searchQuery, onSearchC
     api.getSearchHistory().then(setSearchHistory).catch(() => {});
   }, []);
 
-  // Fetch dynamic suggestions when query >= 1 char
+  // Fetch dynamic suggestions when query >= 1 char (debounced 150ms)
   useEffect(() => {
     if (searchQuery.trim().length >= 1) {
       setShowHistoryDropdown(true);
-      api
-        .getSuggestions(searchQuery.trim())
-        .then((res) => {
-          setSuggestions(res);
-          setShowHistoryDropdown(true);
-        })
-        .catch(() => setSuggestions([]));
+      const timer = setTimeout(() => {
+        api
+          .getSuggestions(searchQuery.trim())
+          .then((res) => {
+            setSuggestions(res);
+            setShowHistoryDropdown(true);
+          })
+          .catch(() => setSuggestions([]));
+      }, 150);
+      return () => clearTimeout(timer);
     } else {
       setSuggestions([]);
     }
