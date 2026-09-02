@@ -1,12 +1,17 @@
-const { MongoClient } = require('mongodb');
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../.env') });
+import { MongoClient } from 'mongodb';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
 let client = null;
 let db = null;
 let memoryServer = null;
 
-async function connectDb(customUri = null, customDbName = null) {
+export async function connectDb(customUri = null, customDbName = null) {
   if (db) return db;
 
   const useMemoryDb = process.env.USE_MEMORY_DB === 'true' || process.env.NODE_ENV === 'test';
@@ -15,7 +20,7 @@ async function connectDb(customUri = null, customDbName = null) {
 
   if (!uri) {
     console.log('Using MongoMemoryServer instance for testing/isolated environment...');
-    const { MongoMemoryServer } = require('mongodb-memory-server');
+    const { MongoMemoryServer } = await import('mongodb-memory-server');
     memoryServer = await MongoMemoryServer.create();
     uri = memoryServer.getUri();
     dbName = 'customer_support_test';
@@ -29,7 +34,7 @@ async function connectDb(customUri = null, customDbName = null) {
   } catch (err) {
     if (!useMemoryDb && !customUri) {
       console.warn(`MongoDB connection attempt failed (${err.message}). Falling back to memory database...`);
-      const { MongoMemoryServer } = require('mongodb-memory-server');
+      const { MongoMemoryServer } = await import('mongodb-memory-server');
       memoryServer = await MongoMemoryServer.create();
       uri = memoryServer.getUri();
       dbName = 'customer_support_local';
@@ -44,21 +49,21 @@ async function connectDb(customUri = null, customDbName = null) {
 
   // Seed initial sample data if database is empty
   if (memoryServer) {
-    const { runMigration } = require('../scripts/migrate-to-mongodb');
+    const { runMigration } = await import('../scripts/migrate-to-mongodb.js');
     await runMigration(false);
   }
 
   return db;
 }
 
-function getDb() {
+export function getDb() {
   if (!db) {
     throw new Error('Database not initialized. Call connectDb() first.');
   }
   return db;
 }
 
-async function closeDb() {
+export async function closeDb() {
   if (client) {
     await client.close();
     client = null;
@@ -70,14 +75,7 @@ async function closeDb() {
   }
 }
 
-function setDbInstance(dbInstance, clientInstance = null) {
+export function setDbInstance(dbInstance, clientInstance = null) {
   db = dbInstance;
   if (clientInstance) client = clientInstance;
 }
-
-module.exports = {
-  connectDb,
-  getDb,
-  closeDb,
-  setDbInstance
-};

@@ -114,7 +114,7 @@ export const Dashboard: React.FC = () => {
           </svg>
           <h3>Failed to load tickets</h3>
           <p style={styles.errorDesc}>{errorMsg}</p>
-          <button onClick={fetchTickets} className="btn btn-secondary" style={{ marginTop: '1rem' }}>
+          <button onClick={() => fetchTickets(true)} className="btn btn-secondary" style={{ marginTop: '1rem' }}>
             Retry Request
           </button>
         </div>

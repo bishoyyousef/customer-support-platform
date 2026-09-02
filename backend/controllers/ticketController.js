@@ -1,7 +1,7 @@
-const ticketRepository = require('../repositories/ticketRepository');
-const messageRepository = require('../repositories/messageRepository');
-const userRepository = require('../repositories/userRepository');
-const { validateTicket } = require('../validators/ticketValidator');
+import ticketRepository from '../repositories/ticketRepository.js';
+import messageRepository from '../repositories/messageRepository.js';
+import userRepository from '../repositories/userRepository.js';
+import { validateTicket } from '../validators/ticketValidator.js';
 
 async function getTickets(req, res, next) {
   try {
@@ -328,7 +328,7 @@ async function getSuggestions(req, res, next) {
   }
 }
 
-module.exports = {
+export {
   getTickets,
   getTicketById,
   createTicket,

@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
+import { getManagerSummary } from '../controllers/managerController.js';
+import { authenticate } from '../middleware/auth.js';
+
 const router = express.Router();
-const managerController = require('../controllers/managerController');
-const { authenticate } = require('../middleware/auth');
+router.get('/summary', authenticate, getManagerSummary);
 
-router.get('/summary', authenticate, managerController.getManagerSummary);
-
-module.exports = router;
+export default router;

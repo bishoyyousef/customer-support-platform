@@ -1,8 +1,13 @@
-const { test, describe, before, after } = require('node:test');
-const assert = require('node:assert');
-const { spawn } = require('node:child_process');
-const fs = require('fs');
-const path = require('path');
+import { test, describe, before, after } from 'node:test';
+import assert from 'node:assert';
+import { spawn } from 'node:child_process';
+import fs from 'fs';
+import path from 'path';
+import net from 'net';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let PORT = 5005;
 let BASE_URL = `http://localhost:${PORT}/api`;
@@ -47,7 +52,6 @@ describe('Backend Security & Business Rules API Test Suite', () => {
   before(async () => {
     backupDb();
     
-    const net = require('net');
     const isPortAvailable = (port) => new Promise(resolve => {
       const s = net.createServer();
       s.once('error', () => resolve(false));

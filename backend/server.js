@@ -1,14 +1,14 @@
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const { connectDb } = require('./database/connection');
+import express from 'express';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import { connectDb } from './database/connection.js';
 
-const authRoutes = require('./routes/authRoutes');
-const ticketRoutes = require('./routes/ticketRoutes');
-const attachmentRoutes = require('./routes/attachmentRoutes');
-const managerRoutes = require('./routes/managerRoutes');
-const userRoutes = require('./routes/userRoutes');
-const { errorHandler } = require('./middleware/errorHandler');
+import authRoutes from './routes/authRoutes.js';
+import ticketRoutes from './routes/ticketRoutes.js';
+import attachmentRoutes from './routes/attachmentRoutes.js';
+import managerRoutes from './routes/managerRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -36,7 +36,7 @@ app.use('/api/users', userRoutes);
 // Global Error Handler Middleware
 app.use(errorHandler);
 
-async function startServer() {
+export async function startServer() {
   try {
     await connectDb();
     app.listen(PORT, () => {
@@ -48,8 +48,8 @@ async function startServer() {
   }
 }
 
-if (require.main === module) {
+if (process.argv[1] && process.argv[1].endsWith('server.js')) {
   startServer();
 }
 
-module.exports = app;
+export default app;

@@ -1,14 +1,23 @@
-const express = require('express');
+import express from 'express';
+import {
+  getTickets,
+  getTicketById,
+  createTicket,
+  updateTicket,
+  postMessage,
+  postNote,
+  getSuggestions
+} from '../controllers/ticketController.js';
+import { authenticate } from '../middleware/auth.js';
+
 const router = express.Router();
-const ticketController = require('../controllers/ticketController');
-const { authenticate } = require('../middleware/auth');
 
-router.get('/', authenticate, ticketController.getTickets);
-router.get('/suggestions', authenticate, ticketController.getSuggestions);
-router.get('/:id', authenticate, ticketController.getTicketById);
-router.post('/', authenticate, ticketController.createTicket);
-router.patch('/:id', authenticate, ticketController.updateTicket);
-router.post('/:id/messages', authenticate, ticketController.postMessage);
-router.post('/:id/notes', authenticate, ticketController.postNote);
+router.get('/', authenticate, getTickets);
+router.post('/', authenticate, createTicket);
+router.get('/suggestions', authenticate, getSuggestions);
+router.get('/:id', authenticate, getTicketById);
+router.patch('/:id', authenticate, updateTicket);
+router.post('/:id/messages', authenticate, postMessage);
+router.post('/:id/notes', authenticate, postNote);
 
-module.exports = router;
+export default router;

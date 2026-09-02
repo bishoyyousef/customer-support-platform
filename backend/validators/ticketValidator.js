@@ -1,4 +1,4 @@
-function validateTicket(ticketData, isUpdate = false) {
+export function validateTicket(ticketData, isUpdate = false) {
   const errors = [];
   const categories = ['Billing', 'Technical', 'Account', 'Other'];
   const urgencies = ['Low', 'Medium', 'High'];
@@ -40,5 +40,3 @@ function validateTicket(ticketData, isUpdate = false) {
     errors
   };
 }
-
-module.exports = { validateTicket };

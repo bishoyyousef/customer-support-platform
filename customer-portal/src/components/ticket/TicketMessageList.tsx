@@ -1,4 +1,4 @@
-import React, { RefObject } from 'react';
+import React, { type RefObject } from 'react';
 import { type Message, type ActivityEvent, type User } from '../../types';
 
 interface TicketMessageListProps {

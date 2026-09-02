@@ -136,6 +136,13 @@ export const api = {
     });
   },
 
+  addMessage: async (ticketId: string, content: string) => {
+    return request<any>(`tickets/${ticketId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  },
+
   uploadAttachment: async (ticketId: string, file: File) => {
     const formData = new FormData();
     formData.append('attachment', file);

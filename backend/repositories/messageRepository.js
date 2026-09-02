@@ -1,4 +1,4 @@
-const { getDb } = require('../database/connection');
+import { getDb } from '../database/connection.js';
 
 class MessageRepository {
   get collection() {
@@ -28,4 +28,4 @@ class MessageRepository {
   }
 }
 
-module.exports = new MessageRepository();
+export default new MessageRepository();

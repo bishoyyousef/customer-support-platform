@@ -1,13 +1,16 @@
-const fs = require('fs');
-const path = require('path');
-const { connectDb, closeDb } = require('../database/connection');
-const userRepository = require('../repositories/userRepository');
-const ticketRepository = require('../repositories/ticketRepository');
-const messageRepository = require('../repositories/messageRepository');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { connectDb, closeDb } from '../database/connection.js';
+import userRepository from '../repositories/userRepository.js';
+import ticketRepository from '../repositories/ticketRepository.js';
+import messageRepository from '../repositories/messageRepository.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const DB_JSON_PATH = path.join(__dirname, '../db.json');
 
-async function runMigration(force = false) {
+export async function runMigration(force = false) {
   console.log(`Starting MongoDB Migration & Seeding process (force=${force})...`);
 
   if (!fs.existsSync(DB_JSON_PATH)) {
@@ -79,7 +82,7 @@ async function runMigration(force = false) {
   console.log('MongoDB Migration completed successfully!');
 }
 
-if (require.main === module) {
+if (process.argv[1] && process.argv[1].endsWith('migrate-to-mongodb.js')) {
   runMigration()
     .then(() => closeDb())
     .then(() => process.exit(0))
@@ -88,5 +91,3 @@ if (require.main === module) {
       closeDb().then(() => process.exit(1));
     });
 }
-
-module.exports = { runMigration };

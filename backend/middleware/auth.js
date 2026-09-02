@@ -1,6 +1,6 @@
-const userRepository = require('../repositories/userRepository');
+import userRepository from '../repositories/userRepository.js';
 
-async function authenticate(req, res, next) {
+export async function authenticate(req, res, next) {
   try {
     let token = null;
     const authHeader = req.headers['authorization'] || req.headers['Authorization'];
@@ -36,5 +36,3 @@ async function authenticate(req, res, next) {
     next(err);
   }
 }
-
-module.exports = { authenticate };

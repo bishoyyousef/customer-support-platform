@@ -1,4 +1,4 @@
-const { getDb } = require('../database/connection');
+import { getDb } from '../database/connection.js';
 
 class UserRepository {
   get collection() {
@@ -75,4 +75,4 @@ class UserRepository {
   }
 }
 
-module.exports = new UserRepository();
+export default new UserRepository();

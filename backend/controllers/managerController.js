@@ -1,7 +1,7 @@
-const userRepository = require('../repositories/userRepository');
-const ticketRepository = require('../repositories/ticketRepository');
+import userRepository from '../repositories/userRepository.js';
+import ticketRepository from '../repositories/ticketRepository.js';
 
-async function getManagerSummary(req, res, next) {
+export async function getManagerSummary(req, res, next) {
   try {
     if (req.user.role !== 'manager') {
       return res.status(403).json({ message: 'Forbidden: Only managers can view manager summary analytics' });
@@ -15,5 +15,3 @@ async function getManagerSummary(req, res, next) {
     next(err);
   }
 }
-
-module.exports = { getManagerSummary };

@@ -1,6 +1,6 @@
-const userRepository = require('../repositories/userRepository');
+import userRepository from '../repositories/userRepository.js';
 
-async function login(req, res, next) {
+export async function login(req, res, next) {
   try {
     const { username, password } = req.body;
     if (!username || !password) {
@@ -25,5 +25,3 @@ async function login(req, res, next) {
     next(err);
   }
 }
-
-module.exports = { login };

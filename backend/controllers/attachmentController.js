@@ -1,8 +1,8 @@
-const path = require('path');
-const fs = require('fs');
-const ticketRepository = require('../repositories/ticketRepository');
-const messageRepository = require('../repositories/messageRepository');
-const { upload, UPLOADS_DIR } = require('../config/multer');
+import path from 'path';
+import fs from 'fs';
+import ticketRepository from '../repositories/ticketRepository.js';
+import messageRepository from '../repositories/messageRepository.js';
+import { upload, UPLOADS_DIR } from '../config/multer.js';
 
 async function uploadAttachment(req, res, next) {
   try {
@@ -113,7 +113,7 @@ async function downloadAttachment(req, res, next) {
   }
 }
 
-module.exports = {
+export {
   uploadAttachment,
   downloadAttachment
 };
