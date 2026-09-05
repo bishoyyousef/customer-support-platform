@@ -667,5 +667,143 @@ textarea:focus-visible {
   transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* HeroUI Dark Theme Tokens & Overrides */
+[data-theme="dark"] {
+  --color-bg-base: #09090b;
+  --color-bg-surface: #18181b;
+  --color-border: #27272a;
+  --color-text-main: #f4f4f5;
+  --color-text-muted: #a1a1aa;
+
+  --color-accent: #3b82f6;
+  --color-accent-hover: #2563eb;
+  --color-accent-light: #1e3a8a;
+
+  --color-success-light: #064e3b;
+  --color-warning-light: #78350f;
+  --color-danger-light: #7f1d1d;
+  --color-info-light: #1e3a8a;
+}
+
+[data-theme="dark"] .main-header,
+[data-theme="dark"] .heroui-glass-header {
+  background-color: rgba(24, 24, 27, 0.85);
+  border-bottom-color: rgba(39, 39, 42, 0.7);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .sidebar {
+  background-color: #121215;
+  border-right-color: #27272a;
+}
+
+[data-theme="dark"] .card,
+[data-theme="dark"] .heroui-card {
+  background-color: var(--color-bg-surface);
+  border-color: var(--color-border);
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] select.form-control,
+[data-theme="dark"] textarea.form-control {
+  background-color: #18181b;
+  border-color: #27272a;
+  color: #f4f4f5;
+}
+
+[data-theme="dark"] .btn-secondary {
+  background-color: #27272a;
+  border-color: #3f3f46;
+  color: #f4f4f5;
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background-color: #3f3f46;
+  border-color: #52525b;
+}
+
+[data-theme="dark"] table,
+[data-theme="dark"] th,
+[data-theme="dark"] td {
+  border-color: #27272a;
+  color: #f4f4f5;
+}
+
+[data-theme="dark"] tr:hover {
+  background-color: #27272a;
+}
+
+[data-theme="dark"] .heroui-command-dialog {
+  background-color: #18181b;
+  border-color: #27272a;
+  color: #f4f4f5;
+}
+
+[data-theme="dark"] .heroui-command-input-container {
+  border-bottom-color: #27272a;
+}
+
+[data-theme="dark"] .heroui-command-input {
+  color: #f4f4f5;
+}
+
+[data-theme="dark"] .heroui-command-item:hover,
+[data-theme="dark"] .heroui-command-item.active {
+  background-color: #27272a;
+  color: #60a5fa;
+}
+
+[data-theme="dark"] .heroui-kbd {
+  background-color: #27272a;
+  border-color: #3f3f46;
+  color: #d4d4d8;
+}
+
+[data-theme="dark"] .density-table th,
+[data-theme="dark"] .analytics-table th {
+  background-color: #121215 !important;
+  color: #a1a1aa !important;
+  border-bottom-color: #27272a !important;
+}
+
+[data-theme="dark"] .density-table tr:hover,
+[data-theme="dark"] .analytics-table tr:hover,
+[data-theme="dark"] tr:hover {
+  background-color: #27272a !important;
+  color: #f4f4f5 !important;
+}
+
+[data-theme="dark"] .ref-badge {
+  background-color: #27272a !important;
+  border-color: #3f3f46 !important;
+  color: #d4d4d8 !important;
+}
+
+[data-theme="dark"] .heroui-chip-danger {
+  background-color: rgba(239, 68, 68, 0.18) !important;
+  color: #f87171 !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+[data-theme="dark"] .heroui-chip-warning {
+  background-color: rgba(245, 158, 11, 0.18) !important;
+  color: #fbbf24 !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+[data-theme="dark"] .heroui-chip-success {
+  background-color: rgba(16, 185, 129, 0.18) !important;
+  color: #34d399 !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+[data-theme="dark"] .heroui-chip-info {
+  background-color: rgba(59, 130, 246, 0.18) !important;
+  color: #60a5fa !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+}
+
+
+
 
 

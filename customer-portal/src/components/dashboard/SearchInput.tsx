@@ -137,7 +137,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ searchQuery, onSearchC
             padding: '0.5rem 0',
             boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
             border: '1px solid var(--color-border)',
-            backgroundColor: 'var(--color-bg-surface, #ffffff)',
+            backgroundColor: 'var(--color-bg-surface)',
           }}
           onMouseDown={(e) => e.preventDefault()}
         >
@@ -170,7 +170,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ searchQuery, onSearchC
                       justifyContent: 'space-between',
                       cursor: 'pointer',
                       fontSize: '0.85rem',
-                      backgroundColor: isSelected ? 'var(--color-bg-subtle, #f3f4f6)' : 'transparent',
+                      backgroundColor: isSelected ? 'var(--color-bg-base)' : 'transparent',
                     }}
                     onMouseEnter={() => setActiveIndex(index)}
                   >

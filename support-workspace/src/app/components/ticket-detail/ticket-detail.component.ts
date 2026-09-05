@@ -400,7 +400,7 @@ import { environment } from '../../../environments/environment';
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background-color: #fcfcfd;
+      background-color: var(--color-bg-base);
     }
     .pane-header h4 {
       font-size: var(--font-size-sm);
@@ -427,7 +427,7 @@ import { environment } from '../../../environments/environment';
       display: block;
     }
     .queue-item:hover {
-      background-color: #fafafa;
+      background-color: var(--color-bg-base);
     }
     .queue-item.active {
       background-color: var(--color-accent-light);
@@ -474,7 +474,7 @@ import { environment } from '../../../environments/environment';
       display: flex;
       flex-direction: column;
       gap: 1.25rem;
-      background-color: #fcfcfd;
+      background-color: var(--color-bg-base);
     }
     .feed-item {
       display: flex;
@@ -493,14 +493,14 @@ import { environment } from '../../../environments/environment';
       padding: 0.75rem 1rem;
       border-radius: var(--radius-lg);
       border: 1px solid var(--color-border);
-      background-color: #ffffff;
+      background-color: var(--color-bg-surface);
       box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.02);
       display: flex;
       flex-direction: column;
     }
     .message-row.msg-agent .msg-bubble {
-      background-color: #f8fafc;
-      border-color: #e2e8f0;
+      background-color: var(--color-bg-surface);
+      border-color: var(--color-border);
     }
     .message-row.msg-internal .msg-bubble {
       background-color: var(--color-warning-light);
@@ -555,7 +555,7 @@ import { environment } from '../../../environments/environment';
       font-size: var(--font-size-xs);
       font-weight: 500;
       color: var(--color-text-muted);
-      background-color: #f1f5f9;
+      background-color: var(--color-bg-base);
       padding: 0.25rem 0.625rem;
       border-radius: var(--radius-sm);
       border: 1px solid var(--color-border);
@@ -570,7 +570,7 @@ import { environment } from '../../../environments/environment';
     .composer-container {
       padding: 1.25rem;
       border-top: 1px solid var(--color-border);
-      background-color: #ffffff;
+      background-color: var(--color-bg-surface);
     }
     .composer-tabs {
       display: flex;

@@ -110,7 +110,7 @@ const styles: Record<string, React.CSSProperties> = {
   chatComposer: {
     padding: '1.25rem',
     borderTop: '1px solid var(--color-border)',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--color-bg-surface)',
   },
   composerForm: {
     display: 'flex',

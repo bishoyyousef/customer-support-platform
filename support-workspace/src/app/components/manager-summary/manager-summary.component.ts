@@ -217,7 +217,7 @@ interface AgentWorkload {
       border-bottom: 1px solid var(--color-border);
     }
     .analytics-table tr:hover {
-      background-color: #fafafa;
+      background-color: var(--color-bg-base);
     }
   `]
 })

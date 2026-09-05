@@ -49,7 +49,7 @@ import { Observable } from 'rxjs';
 
     .toast-item {
       pointer-events: auto;
-      background-color: #ffffff;
+      background-color: var(--color-bg-surface);
       border-left: 4px solid #3b82f6;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       border-radius: 6px;
@@ -80,17 +80,18 @@ import { Observable } from 'rxjs';
       font-weight: 600;
       font-size: 0.875rem;
       margin-bottom: 0.125rem;
+      color: var(--color-text-main);
     }
 
     .toast-message {
       font-size: 0.875rem;
-      color: #09090b;
+      color: var(--color-text-main);
     }
 
     .toast-close {
       background: none;
       border: none;
-      color: #71717a;
+      color: var(--color-text-muted);
       cursor: pointer;
       font-size: 1rem;
       line-height: 1;

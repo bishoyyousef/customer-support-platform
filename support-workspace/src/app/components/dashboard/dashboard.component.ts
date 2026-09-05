@@ -490,7 +490,7 @@ import { HighlightPipe } from '../../shared/pipes/highlight.pipe';
       font-size: var(--font-size-sm);
     }
     .density-table th {
-      background-color: #fcfcfd;
+      background-color: var(--color-bg-base);
       border-bottom: 1px solid var(--color-border);
       padding: 0.75rem 1rem;
       font-weight: 600;
@@ -505,7 +505,7 @@ import { HighlightPipe } from '../../shared/pipes/highlight.pipe';
       vertical-align: middle;
     }
     .density-table tr:hover {
-      background-color: #fafafa;
+      background-color: var(--color-bg-base);
     }
     .ref-badge {
       font-size: var(--font-size-xs);

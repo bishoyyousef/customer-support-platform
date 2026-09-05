@@ -64,7 +64,7 @@ export const TicketMessageList: React.FC<TicketMessageListProps> = ({
               <div
                 style={{
                   ...styles.msgBubble,
-                  backgroundColor: isOwnMessage ? 'var(--color-primary-light)' : '#ffffff',
+                  backgroundColor: isOwnMessage ? 'var(--color-primary-light)' : 'var(--color-bg-surface)',
                   borderColor: isOwnMessage ? 'rgba(79, 70, 229, 0.15)' : 'var(--color-border)',
                   alignItems: isOwnMessage ? 'flex-end' : 'flex-start',
                 }}
@@ -113,7 +113,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     gap: '1.25rem',
-    backgroundColor: '#fafafa',
+    backgroundColor: 'var(--color-bg-base)',
   },
   msgRow: {
     display: 'flex',

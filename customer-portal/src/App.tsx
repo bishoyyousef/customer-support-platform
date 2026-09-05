@@ -51,6 +51,18 @@ const PublicOnlyRoute: React.FC<{ children: React.ReactNode }> = ({ children }) 
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout } = useAuth();
   const [isCmdOpen, setIsCmdOpen] = React.useState(false);
+  const [theme, setTheme] = React.useState<'light' | 'dark'>(() => {
+    return (localStorage.getItem('heroui_theme') as 'light' | 'dark') || 'light';
+  });
+
+  React.useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('heroui_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+  };
 
   return (
     <div style={layoutStyles.wrapper}>
@@ -75,6 +87,32 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               </svg>
               <span>Search</span>
               <span className="heroui-kbd">Ctrl+K</span>
+            </button>
+
+            <button
+              onClick={toggleTheme}
+              className="btn btn-secondary"
+              title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+              style={{ padding: '0.25rem 0.5rem', height: '32px', display: 'inline-flex', alignItems: 'center' }}
+              aria-label="Toggle theme mode"
+            >
+              {theme === 'light' ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="5" />
+                  <line x1="12" y1="1" x2="12" y2="3" />
+                  <line x1="12" y1="21" x2="12" y2="23" />
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                  <line x1="1" y1="12" x2="3" y2="12" />
+                  <line x1="21" y1="12" x2="23" y2="12" />
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </svg>
+              )}
             </button>
 
             <span style={layoutStyles.userName}>{user?.name}</span>
