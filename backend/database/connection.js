@@ -12,7 +12,16 @@ let db = null;
 let memoryServer = null;
 
 export async function connectDb(customUri = null, customDbName = null) {
-  if (db) return db;
+  if (db && client && client.topology && client.topology.isConnected()) {
+    return db;
+  }
+
+  if (client) {
+    try { await client.close(); } catch (_) {}
+    client = null;
+    db = null;
+  }
+
 
   const useMemoryDb = process.env.USE_MEMORY_DB === 'true' || process.env.NODE_ENV === 'test';
   let uri = useMemoryDb ? null : (customUri || process.env.MONGODB_URI);

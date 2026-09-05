@@ -345,3 +345,59 @@ body {
   border-color: rgba(239, 68, 68, 0.2);
   color: var(--color-danger);
 }
+
+/* Accessibility Focus Rings (WCAG 2.1 Compliance) */
+*:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Mobile Sidebar Slide-Over & Responsive Layouts */
+@media (max-width: 767px) {
+  .app-container {
+    position: relative;
+  }
+
+  .sidebar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    height: 100vh;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease-in-out;
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .main-header {
+    padding: 0 0.75rem;
+  }
+
+  .main-viewport {
+    padding: 0.75rem;
+  }
+
+  .mobile-toggle-btn {
+    display: inline-flex !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-toggle-btn {
+    display: none !important;
+  }
+}
+

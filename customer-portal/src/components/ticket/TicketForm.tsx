@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
+import { useToast } from '../../context/ToastContext';
 
 export const TicketForm: React.FC = () => {
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Billing');
@@ -11,10 +13,6 @@ export const TicketForm: React.FC = () => {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  
-  // Field validation states
-  const [titleError, setTitleError] = useState<string | null>(null);
-  const [descError, setDescError] = useState<string | null>(null);
 
   const categories = ['Billing', 'Technical', 'Account', 'Other'];
   const urgencies: Array<'Low' | 'Medium' | 'High'> = ['Low', 'Medium', 'High'];
@@ -53,6 +51,10 @@ export const TicketForm: React.FC = () => {
     return isValid;
   };
 
+  // Field validation states
+  const [titleError, setTitleError] = useState<string | null>(null);
+  const [descError, setDescError] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
@@ -69,13 +71,17 @@ export const TicketForm: React.FC = () => {
         category,
         urgency,
       });
+      addToast('Support request submitted successfully!', 'success', 'Ticket Created');
       navigate('/');
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to submit support request. Please try again.');
+      const msg = err.message || 'Failed to submit support request. Please try again.';
+      setErrorMsg(msg);
+      addToast(msg, 'danger', 'Submission Error');
     } finally {
       setIsSubmitting(false);
     }
   };
+
 
   return (
     <div style={styles.container}>

@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { Subscription, interval, switchMap, Observable } from 'rxjs';
 import { TicketService } from '../../core/services/ticket.service';
 import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 import { Ticket, Message, ActivityEvent, User, TicketStatus } from '../../core/models';
 import { environment } from '../../../environments/environment';
 
@@ -14,6 +15,7 @@ import { environment } from '../../../environments/environment';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, TitleCasePipe],
   template: `
+
     <div class="workspace-grid">
       <!-- 1. Left Column: Compact Ticket Queue List -->
       <div class="queue-pane">
@@ -750,9 +752,11 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
     private route: ActivatedRoute,
     private ticketService: TicketService,
     private authService: AuthService,
+    private toastService: ToastService,
     private router: Router,
     private http: HttpClient
   ) {}
+
 
   ngOnInit(): void {
     this.activeTickets$ = this.ticketService.tickets$;
@@ -858,13 +862,19 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
 
     req$.subscribe({
       next: () => {
+        const isNote = this.activeChannel === 'internal';
+        this.toastService.addToast(
+          isNote ? 'Internal note added successfully' : 'Public message sent to customer',
+          'success'
+        );
         this.composerText = '';
         this.isSubmitting = false;
         // Refetch fresh detail
         this.fetchDetails(this.ticket!.id);
       },
       error: (err: any) => {
-        alert(err.error?.message || err.message || 'Failed to post message.');
+        const msg = err.error?.message || err.message || 'Failed to post message.';
+        this.toastService.addToast(msg, 'danger', 'Post Error');
         this.isSubmitting = false;
       }
     });
@@ -875,13 +885,15 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
     this.isSubmitting = true;
     this.ticketService.claimTicket(this.ticket.id, this.currentUser.id).subscribe({
       next: () => {
+        this.toastService.addToast('Ticket claimed successfully', 'success');
         this.isSubmitting = false;
         this.fetchDetails(this.ticket!.id);
         // Refresh sidebar queue cache
         this.ticketService.fetchTickets().subscribe();
       },
       error: (err: any) => {
-        alert(err.error?.message || err.message || 'Claim request failed.');
+        const msg = err.error?.message || err.message || 'Claim request failed.';
+        this.toastService.addToast(msg, 'danger', 'Claim Error');
         this.isSubmitting = false;
       }
     });
@@ -894,11 +906,13 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
       switchMap(() => this.patchTicketField({ status }))
     ).subscribe({
       next: () => {
+        this.toastService.addToast(`Status updated to ${this.getStatusText(status)}`, 'info');
         this.isSubmitting = false;
         this.fetchDetails(this.ticket!.id);
       },
       error: (err: any) => {
-        alert(err.error?.message || err.message || 'Failed to update status.');
+        const msg = err.error?.message || err.message || 'Failed to update status.';
+        this.toastService.addToast(msg, 'danger', 'Status Error');
         this.isSubmitting = false;
       }
     });
@@ -911,13 +925,15 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
     this.isSubmitting = true;
     this.ticketService.reassignTicket(this.ticket.id, targetId).subscribe({
       next: () => {
+        this.toastService.addToast('Agent reassigned successfully', 'success');
         this.isSubmitting = false;
         this.fetchDetails(this.ticket!.id);
         // Refresh sidebar queue cache
         this.ticketService.fetchTickets().subscribe();
       },
       error: (err: any) => {
-        alert(err.error?.message || err.message || 'Reassignment failed.');
+        const msg = err.error?.message || err.message || 'Reassignment failed.';
+        this.toastService.addToast(msg, 'danger', 'Reassign Error');
         this.isSubmitting = false;
       }
     });
@@ -942,6 +958,7 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
       resolutionSummary: this.resolutionSummary.trim()
     }).subscribe({
       next: () => {
+        this.toastService.addToast('Ticket resolved successfully', 'success');
         this.showResolveModal = false;
         this.isSubmitting = false;
         this.fetchDetails(this.ticket!.id);
@@ -949,11 +966,13 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
         this.ticketService.fetchTickets().subscribe();
       },
       error: (err: any) => {
-        alert(err.error?.message || err.message || 'Failed to resolve ticket.');
+        const msg = err.error?.message || err.message || 'Failed to resolve ticket.';
+        this.toastService.addToast(msg, 'danger', 'Resolution Error');
         this.isSubmitting = false;
       }
     });
   }
+
 
   // Native HttpClient wrappers for notes/messages to keep code simple
   private httpPost(pathSuffix: string, body: any): Observable<any> {

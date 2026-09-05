@@ -4,15 +4,18 @@ import { CommonModule, TitleCasePipe } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { AuthService } from './core/services/auth.service';
 import { User } from './core/models';
+import { ToastContainerComponent } from './components/toast/toast-container.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, TitleCasePipe],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, TitleCasePipe, ToastContainerComponent],
   template: `
+    <app-toast-container></app-toast-container>
+
     <div [class.app-container]="isLoggedIn">
       <!-- Sidebar Navigation Console -->
-      <aside class="sidebar" *ngIf="isLoggedIn">
+      <aside class="sidebar" [class.mobile-open]="isMobileSidebarOpen" *ngIf="isLoggedIn">
         <div class="sidebar-header">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" fill="var(--color-accent)"/>
@@ -21,7 +24,7 @@ import { User } from './core/models';
         </div>
         
         <nav class="sidebar-nav">
-          <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+          <a routerLink="/dashboard" routerLinkActive="active" class="nav-item" (click)="closeMobileSidebar()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="3" width="7" height="7"/>
               <rect x="14" y="3" width="7" height="7"/>
@@ -32,7 +35,7 @@ import { User } from './core/models';
           </a>
 
           <!-- Workload summary node (Manager only) -->
-          <a *ngIf="isManager" routerLink="/manager" routerLinkActive="active" class="nav-item">
+          <a *ngIf="isManager" routerLink="/manager" routerLinkActive="active" class="nav-item" (click)="closeMobileSidebar()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="20" x2="18" y2="10"/>
               <line x1="12" y1="20" x2="12" y2="4"/>
@@ -56,7 +59,19 @@ import { User } from './core/models';
       <!-- Main Content Layout Pane -->
       <div [class.content-frame]="isLoggedIn">
         <header class="main-header" *ngIf="isLoggedIn">
-          <div class="header-left">
+          <div class="header-left" style="display: flex; align-items: center; gap: 0.5rem;">
+            <button
+              (click)="toggleMobileSidebar()"
+              class="btn btn-secondary mobile-toggle-btn"
+              aria-label="Toggle navigation menu"
+              style="padding: 0.25rem 0.5rem; height: 32px;"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+            </button>
             <span class="page-title">Workspace Console</span>
           </div>
           <div class="header-right">
@@ -81,6 +96,7 @@ import { User } from './core/models';
 export class AppComponent implements OnInit, OnDestroy {
   isLoggedIn = false;
   isManager = false;
+  isMobileSidebarOpen = false;
   currentUser: User | null = null;
   userInitials = '';
   private authSub?: Subscription;
@@ -107,6 +123,14 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
+  toggleMobileSidebar(): void {
+    this.isMobileSidebarOpen = !this.isMobileSidebarOpen;
+  }
+
+  closeMobileSidebar(): void {
+    this.isMobileSidebarOpen = false;
+  }
+
   onLogout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
@@ -121,3 +145,4 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 }
 export default AppComponent;
+
