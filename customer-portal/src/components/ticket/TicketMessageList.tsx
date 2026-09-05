@@ -16,28 +16,51 @@ export const TicketMessageList: React.FC<TicketMessageListProps> = ({
   formatDate,
   timelineEndRef,
 }) => {
+  const getInitials = (name: string) => {
+    if (!name) return 'U';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
   return (
     <div style={styles.timelineFeed}>
       {timelineFeed.map((item, idx) => {
         if (item.type === 'activity') {
           const act: ActivityEvent = item.data;
           return (
-            <div key={`act-${idx}`} style={styles.auditEvent}>
-              <span style={styles.auditText}>{act.message}</span>
+            <div key={`act-${idx}`} className="heroui-slide-up" style={styles.auditEvent}>
+              <span style={styles.auditText}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }}>
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                {act.message}
+              </span>
               <span style={styles.auditTime}>{formatDate(act.timestamp)}</span>
             </div>
           );
         } else {
           const msg: Message = item.data;
           const isOwnMessage = msg.senderId === user?.id;
+          const avatarClass = isOwnMessage ? 'heroui-avatar heroui-avatar-customer' : 'heroui-avatar heroui-avatar-agent';
+
           return (
             <div
               key={msg.id}
+              className="heroui-slide-up"
               style={{
                 ...styles.msgRow,
-                justifyContent: isOwnMessage ? 'flex-end' : 'flex-start',
+                flexDirection: isOwnMessage ? 'row-reverse' : 'row',
+                gap: '0.75rem',
               }}
             >
+              <div className={avatarClass}>
+                {getInitials(isOwnMessage ? (user?.name || 'You') : msg.senderName)}
+              </div>
+
               <div
                 style={{
                   ...styles.msgBubble,

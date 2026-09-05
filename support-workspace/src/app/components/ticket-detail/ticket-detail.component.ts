@@ -52,18 +52,32 @@ import { environment } from '../../../environments/environment';
         <div #scrollContainer class="timeline-feed">
           <div *ngFor="let item of sortedTimeline" class="feed-item">
             <!-- System Activity log -->
-            <div *ngIf="item.type === 'activity'" class="activity-log">
-              <span class="activity-text">{{ item.data.message }}</span>
+            <div *ngIf="item.type === 'activity'" class="activity-log heroui-slide-up">
+              <span class="activity-text">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.25rem; display: inline-block; vertical-align: middle;">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                {{ item.data.message }}
+              </span>
               <span class="activity-time">{{ formatDate(item.data.timestamp) }}</span>
             </div>
 
-            <!-- Message bubble -->
+            <!-- Message bubble with HeroUI Avatar -->
             <div 
               *ngIf="item.type === 'message'" 
-              class="message-row"
+              class="message-row heroui-slide-up"
               [class.msg-internal]="item.data.isInternal"
               [class.msg-agent]="item.data.senderRole !== 'customer'"
+              style="display: flex; gap: 0.75rem; align-items: flex-start;"
             >
+              <div 
+                *ngIf="item.data.senderRole === 'customer'"
+                class="heroui-avatar heroui-avatar-customer"
+              >
+                {{ getUserInitials(item.data.senderName) }}
+              </div>
+
               <div class="msg-bubble">
                 <div class="msg-meta">
                   <span class="msg-sender">{{ item.data.senderName }}</span>
@@ -87,6 +101,13 @@ import { environment } from '../../../environments/environment';
                    </a>
                  </div>
                  <div class="msg-time">{{ formatDate(item.data.timestamp) }}</div>
+              </div>
+
+              <div 
+                *ngIf="item.data.senderRole !== 'customer'"
+                class="heroui-avatar heroui-avatar-agent"
+              >
+                {{ getUserInitials(item.data.senderName) }}
               </div>
             </div>
           </div>
@@ -1007,6 +1028,15 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
       case 'resolved': return 'heroui-chip heroui-chip-success';
       default: return 'heroui-chip heroui-chip-info';
     }
+  }
+
+  getUserInitials(name?: string): string {
+    if (!name) return 'U';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
   }
 
   getStatusText(status?: string): string {

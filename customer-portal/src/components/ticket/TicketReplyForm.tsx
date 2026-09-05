@@ -40,7 +40,7 @@ export const TicketReplyForm: React.FC<TicketReplyFormProps> = ({
         <form onSubmit={onSendReply} style={styles.composerForm}>
           <textarea
             className="form-control"
-            placeholder="Type a message to the support team (Press Enter to send, Shift+Enter for newline)..."
+            placeholder="Type your message to support... (Press Enter to send, Shift+Enter for newline)"
             rows={3}
             value={newReply}
             onChange={(e) => onReplyChange(e.target.value)}
@@ -53,9 +53,14 @@ export const TicketReplyForm: React.FC<TicketReplyFormProps> = ({
               }
             }}
             disabled={isSending}
-            style={{ resize: 'none' }}
+            style={{ resize: 'none', borderRadius: '8px' }}
           />
           <div style={styles.composerActions}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+              <span>Press</span>
+              <span className="heroui-kbd">Enter ↵</span>
+              <span>to send</span>
+            </span>
             <input
               type="file"
               id="file-upload"
