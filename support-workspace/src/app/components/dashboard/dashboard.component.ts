@@ -289,10 +289,16 @@ import { HighlightPipe } from '../../shared/pipes/highlight.pipe';
               </td>
               <td>{{ t.category }}</td>
               <td>
-                <span [class]="getUrgencyClass(t.urgency)">{{ t.urgency }}</span>
+                <span [class]="getUrgencyClass(t.urgency)">
+                  <span class="heroui-chip-dot"></span>
+                  {{ t.urgency }}
+                </span>
               </td>
               <td>
-                <span [class]="getStatusClass(t.status)">{{ getStatusText(t.status) }}</span>
+                <span [class]="getStatusClass(t.status)">
+                  <span class="heroui-chip-dot" [class.heroui-chip-dot-pulse]="t.status === 'requires_attention'"></span>
+                  {{ getStatusText(t.status) }}
+                </span>
               </td>
               <td class="assignee-cell">
                 <ng-container *ngIf="currentUser?.role === 'manager'; else defaultAssigneeView">
@@ -911,12 +917,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  getUrgencyClass(urgency: 'Low' | 'Medium' | 'High'): string {
-    return `badge badge-${urgency.toLowerCase()}`;
+  getUrgencyClass(urgency: 'Low' | 'Medium' | 'High' | string): string {
+    switch (urgency.toLowerCase()) {
+      case 'high': return 'heroui-chip heroui-chip-danger';
+      case 'medium': return 'heroui-chip heroui-chip-warning';
+      default: return 'heroui-chip heroui-chip-info';
+    }
   }
 
   getStatusClass(status: TicketStatus): string {
-    return `badge badge-${status}`;
+    switch (status) {
+      case 'requires_attention': return 'heroui-chip heroui-chip-danger';
+      case 'under_investigation': return 'heroui-chip heroui-chip-info';
+      case 'pending_customer': return 'heroui-chip heroui-chip-warning';
+      case 'resolved': return 'heroui-chip heroui-chip-success';
+      default: return 'heroui-chip heroui-chip-info';
+    }
   }
 
   getStatusText(status: TicketStatus): string {

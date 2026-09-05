@@ -6,7 +6,7 @@ interface TicketMessageListProps {
   user: User | null;
   token: string | null;
   formatDate: (dateStr: string) => string;
-  timelineEndRef: RefObject<HTMLDivElement>;
+  timelineEndRef: RefObject<HTMLDivElement | null>;
 }
 
 export const TicketMessageList: React.FC<TicketMessageListProps> = ({

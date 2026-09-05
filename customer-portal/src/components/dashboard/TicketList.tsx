@@ -43,6 +43,7 @@ export const TicketList: React.FC<TicketListProps> = ({
 }) => {
   const categories = ['All', 'Billing', 'Technical', 'Account', 'Other'];
   const urgencies = ['All', 'High', 'Medium', 'Low'];
+  const hasActiveFilters = Boolean(searchQuery.trim()) || selectedCategory !== 'All' || selectedUrgency !== 'All';
 
   const getStatusText = (status: TicketStatus) => {
     switch (status) {
@@ -59,24 +60,32 @@ export const TicketList: React.FC<TicketListProps> = ({
     }
   };
 
-  const getStatusBadgeClass = (status: TicketStatus) => `badge badge-${status}`;
-  const getUrgencyBadgeClass = (urgency: 'Low' | 'Medium' | 'High') =>
-    `badge badge-${urgency.toLowerCase()}`;
+  const getUrgencyChipClass = (urgency: 'Low' | 'Medium' | 'High') => {
+    switch (urgency.toLowerCase()) {
+      case 'high': return 'heroui-chip heroui-chip-danger';
+      case 'medium': return 'heroui-chip heroui-chip-warning';
+      default: return 'heroui-chip heroui-chip-info';
+    }
+  };
+
+  const getStatusChipClass = (status: TicketStatus) => {
+    switch (status) {
+      case 'requires_attention': return 'heroui-chip heroui-chip-danger';
+      case 'under_investigation': return 'heroui-chip heroui-chip-info';
+      case 'pending_customer': return 'heroui-chip heroui-chip-warning';
+      case 'resolved': return 'heroui-chip heroui-chip-success';
+      default: return 'heroui-chip heroui-chip-info';
+    }
+  };
 
   const formatDate = (dateStr: string) => {
     try {
       const d = new Date(dateStr);
-      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     } catch {
       return dateStr;
     }
   };
-
-  const activeFilterCount =
-    (searchQuery.trim() ? 1 : 0) +
-    (selectedCategory !== 'All' ? 1 : 0) +
-    (selectedUrgency !== 'All' ? 1 : 0);
-  const hasActiveFilters = activeFilterCount > 0;
 
   return (
     <div>
@@ -102,7 +111,7 @@ export const TicketList: React.FC<TicketListProps> = ({
             Active Filters:
           </span>
           {searchQuery.trim() && (
-            <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+            <span className="heroui-chip heroui-chip-info" style={{ cursor: 'default' }}>
               Search: "{searchQuery}"
               <button
                 type="button"
@@ -114,7 +123,7 @@ export const TicketList: React.FC<TicketListProps> = ({
             </span>
           )}
           {selectedCategory !== 'All' && (
-            <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+            <span className="heroui-chip heroui-chip-info" style={{ cursor: 'default' }}>
               Category: {selectedCategory}
               <button
                 type="button"
@@ -126,7 +135,7 @@ export const TicketList: React.FC<TicketListProps> = ({
             </span>
           )}
           {selectedUrgency !== 'All' && (
-            <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+            <span className="heroui-chip heroui-chip-info" style={{ cursor: 'default' }}>
               Urgency: {selectedUrgency}
               <button
                 type="button"
@@ -180,7 +189,7 @@ export const TicketList: React.FC<TicketListProps> = ({
             Loading tickets...
           </div>
         ) : tickets.length === 0 ? (
-          <div className="card" style={styles.emptyCard}>
+          <div className="card heroui-card" style={styles.emptyCard}>
             <svg
               width="48"
               height="48"
@@ -209,7 +218,7 @@ export const TicketList: React.FC<TicketListProps> = ({
         ) : (
           <>
             {tickets.map((ticket) => (
-              <div key={ticket.id} className="card" style={styles.ticketCard}>
+              <div key={ticket.id} className="card heroui-card heroui-card-hoverable" style={styles.ticketCard}>
                 <div style={styles.cardHeader}>
                   <div style={styles.titleArea}>
                     <span style={styles.refId}>
@@ -220,8 +229,12 @@ export const TicketList: React.FC<TicketListProps> = ({
                     </Link>
                   </div>
                   <div style={styles.badgeArea}>
-                    <span className={getUrgencyBadgeClass(ticket.urgency)}>{ticket.urgency}</span>
-                    <span className={getStatusBadgeClass(ticket.status)}>
+                    <span className={getUrgencyChipClass(ticket.urgency)}>
+                      <span className="heroui-chip-dot" />
+                      {ticket.urgency}
+                    </span>
+                    <span className={getStatusChipClass(ticket.status)}>
+                      <span className={`heroui-chip-dot ${ticket.status === 'requires_attention' ? 'heroui-chip-dot-pulse' : ''}`} />
                       {getStatusText(ticket.status)}
                     </span>
                   </div>
@@ -237,6 +250,7 @@ export const TicketList: React.FC<TicketListProps> = ({
                 </div>
               </div>
             ))}
+
 
             <Pagination
               currentPage={currentPage}

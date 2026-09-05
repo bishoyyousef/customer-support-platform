@@ -12,8 +12,27 @@ export const TicketHeader: React.FC<TicketHeaderProps> = ({
   getStatusText,
   formatDate,
 }) => {
+  const getUrgencyChipClass = (urgency: string) => {
+
+    switch (urgency.toLowerCase()) {
+      case 'high': return 'heroui-chip heroui-chip-danger';
+      case 'medium': return 'heroui-chip heroui-chip-warning';
+      default: return 'heroui-chip heroui-chip-info';
+    }
+  };
+
+  const getStatusChipClass = (status?: string) => {
+    switch (status) {
+      case 'requires_attention': return 'heroui-chip heroui-chip-danger';
+      case 'under_investigation': return 'heroui-chip heroui-chip-info';
+      case 'pending_customer': return 'heroui-chip heroui-chip-warning';
+      case 'resolved': return 'heroui-chip heroui-chip-success';
+      default: return 'heroui-chip heroui-chip-info';
+    }
+  };
+
   return (
-    <div className="card" style={styles.detailsCard}>
+    <div className="card heroui-card" style={styles.detailsCard}>
       <h3 style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
         Ticket Details
       </h3>
@@ -30,12 +49,18 @@ export const TicketHeader: React.FC<TicketHeaderProps> = ({
 
       <div style={styles.metaRow}>
         <span style={styles.metaLabel}>Urgency</span>
-        <span className={`badge badge-${ticket.urgency.toLowerCase()}`}>{ticket.urgency}</span>
+        <span className={getUrgencyChipClass(ticket.urgency)}>
+          <span className="heroui-chip-dot" />
+          {ticket.urgency}
+        </span>
       </div>
 
       <div style={styles.metaRow}>
         <span style={styles.metaLabel}>Status</span>
-        <span className={`badge badge-${ticket.status}`}>{getStatusText(ticket.status)}</span>
+        <span className={getStatusChipClass(ticket.status)}>
+          <span className={`heroui-chip-dot ${ticket.status === 'requires_attention' ? 'heroui-chip-dot-pulse' : ''}`} />
+          {getStatusText(ticket.status)}
+        </span>
       </div>
 
       <div style={styles.metaRow}>
@@ -57,6 +82,7 @@ export const TicketHeader: React.FC<TicketHeaderProps> = ({
     </div>
   );
 };
+
 
 const styles: Record<string, React.CSSProperties> = {
   detailsCard: {

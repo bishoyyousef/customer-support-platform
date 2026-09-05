@@ -32,7 +32,10 @@ import { environment } from '../../../environments/environment';
           >
             <div class="queue-item-meta">
               <span class="q-id">{{ t.id }}</span>
-              <span [class]="getUrgencyBadgeClass(t.urgency)">{{ t.urgency[0] }}</span>
+              <span [class]="getUrgencyBadgeClass(t.urgency)">
+                <span class="heroui-chip-dot"></span>
+                {{ t.urgency[0] }}
+              </span>
             </div>
             <div class="q-title">{{ t.title }}</div>
             <div class="q-customer">by {{ t.customerName }}</div>
@@ -189,12 +192,16 @@ import { environment } from '../../../environments/environment';
 
           <div class="meta-row">
             <span class="lbl">Urgency</span>
-            <span [class]="getUrgencyBadgeClass(ticket?.urgency || 'Low')">{{ ticket?.urgency }}</span>
+            <span [class]="getUrgencyBadgeClass(ticket?.urgency || 'Low')">
+              <span class="heroui-chip-dot"></span>
+              {{ ticket?.urgency }}
+            </span>
           </div>
 
           <div class="meta-row">
             <span class="lbl">Status</span>
             <span [class]="getStatusClass(ticket?.status || 'requires_attention')">
+              <span class="heroui-chip-dot" [class.heroui-chip-dot-pulse]="ticket?.status === 'requires_attention'"></span>
               {{ getStatusText(ticket?.status) }}
             </span>
           </div>
@@ -985,11 +992,21 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
 
   // CSS mappings
   getUrgencyBadgeClass(urgency: string): string {
-    return `badge badge-${urgency.toLowerCase()}`;
+    switch (urgency.toLowerCase()) {
+      case 'high': return 'heroui-chip heroui-chip-danger';
+      case 'medium': return 'heroui-chip heroui-chip-warning';
+      default: return 'heroui-chip heroui-chip-info';
+    }
   }
 
   getStatusClass(status: string): string {
-    return `badge badge-${status}`;
+    switch (status) {
+      case 'requires_attention': return 'heroui-chip heroui-chip-danger';
+      case 'under_investigation': return 'heroui-chip heroui-chip-info';
+      case 'pending_customer': return 'heroui-chip heroui-chip-warning';
+      case 'resolved': return 'heroui-chip heroui-chip-success';
+      default: return 'heroui-chip heroui-chip-info';
+    }
   }
 
   getStatusText(status?: string): string {
