@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, Observable, combineLatest, map, Subscription, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { TicketService } from '../../core/services/ticket.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -615,11 +615,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   private querySubscription?: Subscription;
   private filterResetSubscription?: Subscription;
+  private routeSubscription?: Subscription;
 
   constructor(
     private ticketService: TicketService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -630,6 +632,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.page$ = this.ticketService.page$;
     this.totalPages$ = this.ticketService.totalPages$;
     this.totalItems$ = this.ticketService.totalItems$;
+
+    this.routeSubscription = this.route.queryParams.subscribe(params => {
+      if (params['tab'] && (params['tab'] === 'attention' || params['tab'] === 'mine' || params['tab'] === 'all')) {
+        this.activeTab$.next(params['tab']);
+      }
+      if (params['urgency']) {
+        this.selectedUrgency$.next(params['urgency']);
+      }
+    });
 
     // 1. Reset page to 1 on any filter changes
     this.filterResetSubscription = combineLatest([
@@ -692,6 +703,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
     if (this.filterResetSubscription) {
       this.filterResetSubscription.unsubscribe();
+    }
+    if (this.routeSubscription) {
+      this.routeSubscription.unsubscribe();
     }
   }
 

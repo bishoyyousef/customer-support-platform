@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../../services/api';
 import { type Ticket } from '../../types';
 import { SummaryCards } from './SummaryCards';
 import { TicketList } from './TicketList';
 
 export const Dashboard: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -17,6 +18,20 @@ export const Dashboard: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedUrgency, setSelectedUrgency] = useState('All');
   const [activeTab, setActiveTab] = useState<'active' | 'pending' | 'resolved'>('active');
+
+  // Sync query parameters (e.g. ?tab=pending or ?urgency=High)
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'active' || tabParam === 'pending' || tabParam === 'resolved') {
+      setActiveTab(tabParam);
+      setCurrentPage(1);
+    }
+    const urgencyParam = searchParams.get('urgency');
+    if (urgencyParam) {
+      setSelectedUrgency(urgencyParam);
+      setCurrentPage(1);
+    }
+  }, [searchParams]);
 
   // Search debouncing states
   const [searchVal, setSearchVal] = useState('');

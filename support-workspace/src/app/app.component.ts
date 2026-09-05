@@ -5,13 +5,15 @@ import { Subscription } from 'rxjs';
 import { AuthService } from './core/services/auth.service';
 import { User } from './core/models';
 import { ToastContainerComponent } from './components/toast/toast-container.component';
+import { CommandPaletteComponent } from './components/command-palette/command-palette.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, TitleCasePipe, ToastContainerComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, TitleCasePipe, ToastContainerComponent, CommandPaletteComponent],
   template: `
     <app-toast-container></app-toast-container>
+    <app-command-palette #cmdPalette></app-command-palette>
 
     <div [class.app-container]="isLoggedIn">
       <!-- Sidebar Navigation Console -->
@@ -74,7 +76,19 @@ import { ToastContainerComponent } from './components/toast/toast-container.comp
             </button>
             <span class="page-title">Workspace Console</span>
           </div>
-          <div class="header-right">
+          <div class="header-right" style="display: flex; align-items: center; gap: 0.75rem;">
+            <button
+              (click)="cmdPalette.toggleModal()"
+              class="btn btn-secondary"
+              style="padding: 0.25rem 0.625rem; height: 32px; display: inline-flex; align-items: center; gap: 0.375rem; font-size: 0.8rem;"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <span>Search</span>
+              <span class="heroui-kbd" style="color: var(--color-text-main); border-color: var(--color-border); background-color: var(--color-bg-base);">Ctrl+K</span>
+            </button>
             <button (click)="onLogout()" class="btn btn-secondary logout-btn">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>

@@ -7,7 +7,7 @@ import { LoginForm } from './components/auth/LoginForm';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { TicketForm } from './components/ticket/TicketForm';
 import { TicketDetails } from './components/ticket/TicketDetails';
-
+import { CommandPaletteModal } from './components/common/CommandPaletteModal';
 
 // Route Guards
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -50,6 +50,7 @@ const PublicOnlyRoute: React.FC<{ children: React.ReactNode }> = ({ children }) 
 // Layout Component
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout } = useAuth();
+  const [isCmdOpen, setIsCmdOpen] = React.useState(false);
 
   return (
     <div style={layoutStyles.wrapper}>
@@ -62,6 +63,20 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <strong>Customer Support Portal</strong>
           </Link>
           <div style={layoutStyles.userSection}>
+            <button
+              id="cmd-palette-trigger"
+              onClick={() => setIsCmdOpen(true)}
+              className="btn btn-secondary"
+              style={{ padding: '0.25rem 0.625rem', height: '32px', display: 'inline-flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8rem' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <span>Search</span>
+              <span className="heroui-kbd">Ctrl+K</span>
+            </button>
+
             <span style={layoutStyles.userName}>{user?.name}</span>
             <button onClick={logout} className="btn btn-secondary" style={{ padding: '0.25rem 0.75rem', height: '32px' }}>
               Sign Out
@@ -69,6 +84,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
         </div>
       </header>
+      <CommandPaletteModal isOpen={isCmdOpen} onClose={() => setIsCmdOpen(false)} />
       <main className="container" style={layoutStyles.main}>
         {children}
       </main>
