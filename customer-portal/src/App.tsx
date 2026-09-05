@@ -54,7 +54,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <div style={layoutStyles.wrapper}>
-      <header style={layoutStyles.header}>
+      <header className="heroui-glass-header" style={layoutStyles.header}>
         <div className="container" style={layoutStyles.headerContainer}>
           <Link to="/" style={layoutStyles.brand}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '0.5rem' }}>
@@ -100,8 +100,6 @@ const layoutStyles: Record<string, React.CSSProperties> = {
     backgroundColor: 'var(--color-bg-base)',
   },
   header: {
-    backgroundColor: 'var(--color-bg-surface)',
-    borderBottom: '1px solid var(--color-border)',
     padding: '0.875rem 0',
   },
   headerContainer: {

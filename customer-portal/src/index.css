@@ -590,4 +590,18 @@ textarea:focus-visible {
   }
 }
 
+/* HeroUI Glassmorphic Navbar & Floating Header */
+.heroui-glass-header {
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(228, 228, 231, 0.7);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+
 

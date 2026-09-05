@@ -60,7 +60,7 @@ import { CommandPaletteComponent } from './components/command-palette/command-pa
 
       <!-- Main Content Layout Pane -->
       <div [class.content-frame]="isLoggedIn">
-        <header class="main-header" *ngIf="isLoggedIn">
+        <header class="main-header heroui-glass-header" *ngIf="isLoggedIn">
           <div class="header-left" style="display: flex; align-items: center; gap: 0.5rem;">
             <button
               (click)="toggleMobileSidebar()"
