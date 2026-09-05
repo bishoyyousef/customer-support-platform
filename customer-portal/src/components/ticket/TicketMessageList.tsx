@@ -31,7 +31,7 @@ export const TicketMessageList: React.FC<TicketMessageListProps> = ({
         if (item.type === 'activity') {
           const act: ActivityEvent = item.data;
           return (
-            <div key={`act-${idx}`} className="heroui-slide-up" style={styles.auditEvent}>
+            <div key={`act-${idx}`} style={styles.auditEvent}>
               <span style={styles.auditText}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }}>
                   <circle cx="12" cy="12" r="10" />
@@ -50,7 +50,6 @@ export const TicketMessageList: React.FC<TicketMessageListProps> = ({
           return (
             <div
               key={msg.id}
-              className="heroui-slide-up"
               style={{
                 ...styles.msgRow,
                 flexDirection: isOwnMessage ? 'row-reverse' : 'row',

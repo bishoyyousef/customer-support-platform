@@ -151,7 +151,47 @@ export const TicketDetails: React.FC = () => {
   });
 
   ticket.activityTimeline.forEach((act) => {
-    timelineFeed.push({ type: 'activity', timestamp: act.timestamp, data: act });
+    const rawMsg = act.message || '';
+    const lower = rawMsg.toLowerCase();
+
+    // Filter out redundant activity entries when actual message bubbles exist
+    if (
+      lower.includes('added a reply') ||
+      lower.includes('response added') ||
+      lower.includes('note added') ||
+      lower.includes('message posted') ||
+      lower.includes('added internal note')
+    ) {
+      return;
+    }
+
+    // Clean up verbose assignment & status messages
+    let cleanMessage = rawMsg;
+    if (rawMsg.includes('Assignment changed from')) {
+      const match = rawMsg.match(/to '(.*?)'/);
+      const target = match ? match[1] : '';
+      if (target && target !== 'Unassigned') {
+        cleanMessage = `Assigned to ${target}`;
+      } else {
+        cleanMessage = 'Unassigned ticket';
+      }
+    } else if (rawMsg.includes('Status updated from') || rawMsg.includes('Status reverted from')) {
+      if (rawMsg.includes('requires_attention')) {
+        cleanMessage = 'Status changed to Waiting on Support';
+      } else if (rawMsg.includes('under_investigation')) {
+        cleanMessage = 'Status changed to Under Investigation';
+      } else if (rawMsg.includes('pending_customer')) {
+        cleanMessage = 'Status changed to Waiting on You';
+      } else if (rawMsg.includes('resolved')) {
+        cleanMessage = 'Ticket Resolved';
+      }
+    }
+
+    timelineFeed.push({
+      type: 'activity',
+      timestamp: act.timestamp,
+      data: { ...act, message: cleanMessage }
+    });
   });
 
   timelineFeed.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());

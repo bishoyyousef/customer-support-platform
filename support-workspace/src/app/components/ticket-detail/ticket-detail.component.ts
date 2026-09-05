@@ -52,7 +52,7 @@ import { environment } from '../../../environments/environment';
         <div #scrollContainer class="timeline-feed">
           <div *ngFor="let item of sortedTimeline" class="feed-item">
             <!-- System Activity log -->
-            <div *ngIf="item.type === 'activity'" class="activity-log heroui-slide-up">
+            <div *ngIf="item.type === 'activity'" class="activity-log">
               <span class="activity-text">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.25rem; display: inline-block; vertical-align: middle;">
                   <circle cx="12" cy="12" r="10"/>
@@ -66,7 +66,7 @@ import { environment } from '../../../environments/environment';
             <!-- Message bubble with HeroUI Avatar -->
             <div 
               *ngIf="item.type === 'message'" 
-              class="message-row heroui-slide-up"
+              class="message-row"
               [class.msg-internal]="item.data.isInternal"
               [class.msg-agent]="item.data.senderRole !== 'customer'"
               style="display: flex; gap: 0.75rem; align-items: flex-start;"
@@ -127,19 +127,26 @@ import { environment } from '../../../environments/environment';
             <!-- Tab headers -->
             <div class="composer-tabs">
               <button 
+                type="button"
                 (click)="activeChannel = 'public'" 
-                class="tab-btn" 
+                class="composer-tab-btn" 
                 [class.active]="activeChannel === 'public'"
               >
-                Public Reply
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                <span>Public Reply</span>
               </button>
               <button 
+                type="button"
                 (click)="activeChannel = 'internal'" 
-                class="tab-btn" 
+                class="composer-tab-btn tab-internal" 
                 [class.active]="activeChannel === 'internal'"
-                style="color: var(--color-warning);"
               >
-                Internal Note
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <span>Internal Note</span>
               </button>
             </div>
 
@@ -574,10 +581,61 @@ import { environment } from '../../../environments/environment';
     }
     .composer-tabs {
       display: flex;
-      gap: 1rem;
-      margin-bottom: 0.75rem;
+      gap: 0.625rem;
+      margin-bottom: 0.875rem;
       border-bottom: 1px solid var(--color-border);
-      padding-bottom: 0.5rem;
+      padding-bottom: 0.75rem;
+    }
+    .composer-tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.4375rem 0.875rem;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      border-radius: 9999px;
+      border: 1px solid var(--color-border);
+      background-color: var(--color-bg-base);
+      color: var(--color-text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+    .composer-tab-btn:hover {
+      color: var(--color-text-main);
+      border-color: var(--color-text-muted);
+      transform: translateY(-1px);
+    }
+    .composer-tab-btn.active {
+      background-color: var(--color-accent);
+      color: #ffffff;
+      border-color: var(--color-accent);
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+    }
+    .composer-tab-btn.tab-internal {
+      background-color: var(--color-warning-light);
+      color: #d97706;
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+    .composer-tab-btn.tab-internal:hover {
+      border-color: var(--color-warning);
+      color: #b45309;
+      transform: translateY(-1px);
+    }
+    .composer-tab-btn.tab-internal.active {
+      background-color: #f59e0b;
+      color: #ffffff;
+      border-color: #f59e0b;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    }
+    [data-theme="dark"] .composer-tab-btn.tab-internal {
+      background-color: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+    [data-theme="dark"] .composer-tab-btn.tab-internal.active {
+      background-color: #f59e0b;
+      color: #ffffff;
     }
     .composer-form {
       display: flex;
@@ -851,7 +909,47 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
     });
 
     this.ticket.activityTimeline.forEach(a => {
-      timeline.push({ type: 'activity', timestamp: a.timestamp, data: a });
+      const rawMsg = a.message || '';
+      const lower = rawMsg.toLowerCase();
+
+      // Filter out redundant activity entries when actual message bubbles exist
+      if (
+        lower.includes('added a reply') ||
+        lower.includes('response added') ||
+        lower.includes('note added') ||
+        lower.includes('message posted') ||
+        lower.includes('added internal note')
+      ) {
+        return;
+      }
+
+      // Clean up verbose assignment & status messages
+      let cleanMessage = rawMsg;
+      if (rawMsg.includes('Assignment changed from')) {
+        const match = rawMsg.match(/to '(.*?)'/);
+        const target = match ? match[1] : '';
+        if (target && target !== 'Unassigned') {
+          cleanMessage = `Assigned to ${target}`;
+        } else {
+          cleanMessage = 'Unassigned ticket';
+        }
+      } else if (rawMsg.includes('Status updated from') || rawMsg.includes('Status reverted from')) {
+        if (rawMsg.includes('requires_attention')) {
+          cleanMessage = 'Status changed to Requires Attention';
+        } else if (rawMsg.includes('under_investigation')) {
+          cleanMessage = 'Status changed to Under Investigation';
+        } else if (rawMsg.includes('pending_customer')) {
+          cleanMessage = 'Status changed to Pending Customer';
+        } else if (rawMsg.includes('resolved')) {
+          cleanMessage = 'Ticket Resolved';
+        }
+      }
+
+      timeline.push({
+        type: 'activity',
+        timestamp: a.timestamp,
+        data: { ...a, message: cleanMessage }
+      });
     });
 
     timeline.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
