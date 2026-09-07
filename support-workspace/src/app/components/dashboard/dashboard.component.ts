@@ -5,6 +5,7 @@ import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, Observable, combineLatest, map, Subscription, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { TicketService } from '../../core/services/ticket.service';
 import { AuthService } from '../../core/services/auth.service';
+import { SocketService } from '../../core/services/socket.service';
 import { Ticket, TicketStatus } from '../../core/models';
 import { HighlightPipe } from '../../shared/pipes/highlight.pipe';
 
@@ -616,12 +617,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private querySubscription?: Subscription;
   private filterResetSubscription?: Subscription;
   private routeSubscription?: Subscription;
+  private socketSub?: Subscription;
 
   constructor(
     private ticketService: TicketService,
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private socketService: SocketService
   ) {}
 
   ngOnInit(): void {
@@ -641,6 +644,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.selectedUrgency$.next(params['urgency']);
       }
     });
+
+    // Subscribe to real-time socket events for dashboard updates
+    this.socketService.joinDashboard();
+    this.socketSub = this.socketService.onTicketCreated$.subscribe(() => {
+      this.refreshTickets();
+    });
+    this.socketSub.add(
+      this.socketService.onTicketUpdated$.subscribe(() => {
+        this.refreshTickets();
+      })
+    );
 
     // 1. Reset page to 1 on any filter changes
     this.filterResetSubscription = combineLatest([
@@ -706,6 +720,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
     if (this.routeSubscription) {
       this.routeSubscription.unsubscribe();
+    }
+    if (this.socketSub) {
+      this.socketSub.unsubscribe();
     }
   }
 

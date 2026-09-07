@@ -224,13 +224,17 @@ export const AppContent: React.FC = () => {
   );
 };
 
+import { SocketProvider } from './context/SocketContext';
+
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <ToastProvider>
-        <ToastContainer />
-        <AppContent />
-      </ToastProvider>
+      <SocketProvider>
+        <ToastProvider>
+          <ToastContainer />
+          <AppContent />
+        </ToastProvider>
+      </SocketProvider>
     </AuthProvider>
   );
 };

@@ -7,9 +7,12 @@ import { TicketHeader } from './TicketHeader';
 import { TicketMessageList } from './TicketMessageList';
 import { TicketReplyForm } from './TicketReplyForm';
 
+import { useSocket } from '../../context/SocketContext';
+
 export const TicketDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user, token } = useAuth();
+  const { socket, joinTicket, leaveTicket } = useSocket();
 
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,6 +45,49 @@ export const TicketDetails: React.FC = () => {
 
     return () => clearInterval(interval);
   }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      joinTicket(id);
+    }
+    return () => {
+      if (id) {
+        leaveTicket(id);
+      }
+    };
+  }, [id, socket]);
+
+  useEffect(() => {
+    if (!socket || !id) return;
+
+    const handleNewMessage = (msg: any) => {
+      if (msg.ticketId === id) {
+        setTicket((prev) => {
+          if (!prev) return prev;
+          const exists = prev.messages.some((m) => m.id === msg.id);
+          if (exists) return prev;
+          return {
+            ...prev,
+            messages: [...prev.messages, msg],
+          };
+        });
+      }
+    };
+
+    const handleTicketUpdated = (updatedTicket: any) => {
+      if (updatedTicket.id === id) {
+        setTicket(updatedTicket);
+      }
+    };
+
+    socket.on('new_message', handleNewMessage);
+    socket.on('ticket_updated', handleTicketUpdated);
+
+    return () => {
+      socket.off('new_message', handleNewMessage);
+      socket.off('ticket_updated', handleTicketUpdated);
+    };
+  }, [socket, id]);
 
   useEffect(() => {
     timelineEndRef.current?.scrollIntoView({ behavior: 'smooth' });

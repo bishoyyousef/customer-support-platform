@@ -1,7 +1,9 @@
 import express from 'express';
+import http from 'http';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import { connectDb } from './database/connection.js';
+import { initSocketServer } from './socket.js';
 
 import authRoutes from './routes/authRoutes.js';
 import ticketRoutes from './routes/ticketRoutes.js';
@@ -12,6 +14,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const server = http.createServer(app);
 
 // Top-level Middleware
 app.use(cors());
@@ -36,10 +39,13 @@ app.use('/api/users', userRoutes);
 // Global Error Handler Middleware
 app.use(errorHandler);
 
+// Attach Socket.io
+initSocketServer(server);
+
 export async function startServer() {
   try {
     await connectDb();
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`Persistent MongoDB Server listening on port ${PORT}`);
     });
   } catch (err) {

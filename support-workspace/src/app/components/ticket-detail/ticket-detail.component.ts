@@ -7,6 +7,7 @@ import { Subscription, interval, switchMap, Observable } from 'rxjs';
 import { TicketService } from '../../core/services/ticket.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
+import { SocketService } from '../../core/services/socket.service';
 import { Ticket, Message, ActivityEvent, User, TicketStatus } from '../../core/models';
 import { environment } from '../../../environments/environment';
 
@@ -833,6 +834,8 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
 
   private routeSub?: Subscription;
   private pollSub?: Subscription;
+  private socketSub?: Subscription;
+  private currentTicketId: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -840,7 +843,8 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
     private authService: AuthService,
     private toastService: ToastService,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private socketService: SocketService
   ) {}
 
 
@@ -856,6 +860,22 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
       }
     });
 
+    // Subscribe to real-time socket updates for tickets
+    this.socketSub = this.socketService.onNewMessage$.subscribe((msg: any) => {
+      if (this.currentTicketId && msg.ticketId === this.currentTicketId) {
+        this.fetchDetails(this.currentTicketId);
+      }
+    });
+
+    this.socketSub.add(
+      this.socketService.onTicketUpdated$.subscribe((updatedTicket: any) => {
+        if (this.currentTicketId && updatedTicket.id === this.currentTicketId) {
+          this.ticket = updatedTicket;
+          this.sortTimeline();
+        }
+      })
+    );
+
     // Make sure sidebar queue is cached
     this.ticketService.fetchTickets().subscribe();
   }
@@ -863,6 +883,10 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
   ngOnDestroy(): void {
     this.routeSub?.unsubscribe();
     this.pollSub?.unsubscribe();
+    this.socketSub?.unsubscribe();
+    if (this.currentTicketId) {
+      this.socketService.leaveTicket(this.currentTicketId);
+    }
   }
 
   ngAfterViewChecked(): void {
@@ -870,12 +894,19 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
   }
 
   private setupPoll(ticketId: string): void {
+    if (this.currentTicketId && this.currentTicketId !== ticketId) {
+      this.socketService.leaveTicket(this.currentTicketId);
+    }
+
+    this.currentTicketId = ticketId;
+    this.socketService.joinTicket(ticketId);
+
     this.pollSub?.unsubscribe();
     
     // Fetch details instantly
     this.fetchDetails(ticketId);
 
-    // Setup periodic polling every 5 seconds
+    // Setup periodic polling every 5 seconds fallback
     this.pollSub = interval(5000).pipe(
       switchMap(() => this.ticketService.getTicketDetails(ticketId))
     ).subscribe({

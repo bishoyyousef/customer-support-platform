@@ -1,6 +1,8 @@
 import ticketRepository from '../repositories/ticketRepository.js';
 import messageRepository from '../repositories/messageRepository.js';
 import userRepository from '../repositories/userRepository.js';
+import ticketService from '../services/ticketService.js';
+import { broadcastNewMessage, broadcastTicketUpdate, broadcastNewTicket } from '../socket.js';
 import { validateTicket } from '../validators/ticketValidator.js';
 
 async function getTickets(req, res, next) {
@@ -68,50 +70,12 @@ async function createTicket(req, res, next) {
       return res.status(400).json({ message: 'Validation failed', errors });
     }
 
-    const ticketId = `TKT-${Math.floor(1000 + Math.random() * 9000)}`;
-    const now = new Date().toISOString();
-
-    const initialMessage = {
-      id: `msg_${Date.now()}`,
-      ticketId,
-      senderId: req.user.id,
-      senderName: req.user.name,
-      senderRole: 'customer',
-      content: req.body.description.trim(),
-      timestamp: now,
-      isInternal: false
-    };
-
-    const newTicket = {
-      id: ticketId,
-      title: req.body.title.trim(),
-      description: req.body.description.trim(),
-      category: req.body.category,
-      urgency: req.body.urgency,
-      status: 'requires_attention',
-      customerId: req.user.id,
-      customerName: req.user.name,
-      assignedTo: null,
-      assignedName: null,
-      createdAt: now,
-      updatedAt: now,
-      resolutionSummary: null,
-      activityTimeline: [
-        {
-          type: 'creation',
-          message: `Ticket created by ${req.user.name}`,
-          timestamp: now,
-          actorName: req.user.name
-        }
-      ]
-    };
-
-    await ticketRepository.create(newTicket);
-    await messageRepository.create(initialMessage);
+    const result = await ticketService.createTicket(req.user, req.body);
+    broadcastNewTicket(result.ticket);
 
     const responseData = {
-      ...newTicket,
-      messages: [initialMessage]
+      ...result.ticket,
+      messages: [result.initialMessage]
     };
 
     return res.status(201).json(responseData);
@@ -133,11 +97,7 @@ async function updateTicket(req, res, next) {
       return res.status(400).json({ message: 'Validation failed', errors });
     }
 
-    const now = new Date().toISOString();
-    const updateFields = { updatedAt: now };
-    let timelineEvent = null;
-
-    // Status transitions
+    // Status transitions check
     if (req.body.status !== undefined && req.body.status !== ticket.status) {
       const validTransitions = {
         'requires_attention': ['under_investigation', 'pending_customer', 'resolved'],
@@ -158,19 +118,10 @@ async function updateTicket(req, res, next) {
         if (!summary || typeof summary !== 'string' || summary.trim().length < 10 || summary.trim().length > 1000) {
           return res.status(400).json({ message: 'Resolution summary of at least 10 characters is required to resolve a ticket.' });
         }
-        updateFields.resolutionSummary = summary.trim();
       }
-
-      updateFields.status = req.body.status;
-      timelineEvent = {
-        type: 'status_change',
-        message: `Status updated from '${ticket.status}' to '${req.body.status}' by ${req.user.name}`,
-        timestamp: now,
-        actorName: req.user.name
-      };
     }
 
-    // Assignments
+    // Assignments RBAC check
     if (req.body.assignedTo !== undefined) {
       const targetAgentId = req.body.assignedTo;
 
@@ -184,33 +135,18 @@ async function updateTicket(req, res, next) {
         }
       }
 
-      if (req.body.assignedTo !== ticket.assignedTo) {
-        let targetAgentName = null;
-        if (targetAgentId) {
-          const targetAgent = await userRepository.findById(targetAgentId);
-          if (!targetAgent || (targetAgent.role !== 'agent' && targetAgent.role !== 'manager')) {
-            return res.status(400).json({ message: 'Invalid assignee ID' });
-          }
-          targetAgentName = targetAgent.name;
+      if (targetAgentId) {
+        const targetAgent = await userRepository.findById(targetAgentId);
+        if (!targetAgent || (targetAgent.role !== 'agent' && targetAgent.role !== 'manager')) {
+          return res.status(400).json({ message: 'Invalid assignee ID' });
         }
-
-        const prevAgentName = ticket.assignedName || 'Unassigned';
-        const newAgentName = targetAgentName || 'Unassigned';
-
-        updateFields.assignedTo = targetAgentId;
-        updateFields.assignedName = targetAgentName;
-
-        timelineEvent = {
-          type: 'assignment',
-          message: `Assignment changed from '${prevAgentName}' to '${newAgentName}' by ${req.user.name}`,
-          timestamp: now,
-          actorName: req.user.name
-        };
       }
     }
 
-    const updatedTicket = await ticketRepository.update(ticket.id, updateFields, timelineEvent);
-    delete updatedTicket._id;
+    const updatedTicket = await ticketService.updateTicket(ticket.id, req.user, req.body);
+    if (updatedTicket) {
+      broadcastTicketUpdate(updatedTicket);
+    }
 
     return res.status(200).json(updatedTicket);
   } catch (err) {
@@ -238,37 +174,15 @@ async function postMessage(req, res, next) {
       return res.status(403).json({ message: 'Forbidden: You do not have access to this ticket' });
     }
 
-    const now = new Date().toISOString();
-    const newMessage = {
-      id: `msg_${Date.now()}`,
-      ticketId: ticket.id,
-      senderId: req.user.id,
-      senderName: req.user.name,
-      senderRole: req.user.role,
-      content: content.trim(),
-      timestamp: now,
-      isInternal: false
-    };
-
-    await messageRepository.create(newMessage);
-
-    const updateFields = { updatedAt: now };
-    let timelineEvent = null;
-
-    if (req.user.role === 'customer' && ticket.status !== 'requires_attention') {
-      const oldStatus = ticket.status;
-      updateFields.status = 'requires_attention';
-      timelineEvent = {
-        type: 'status_change',
-        message: `Status reverted from '${oldStatus}' to 'requires_attention' automatically by system due to customer response`,
-        timestamp: now,
-        actorName: 'System'
-      };
+    const newMessage = await ticketService.addMessage(ticket.id, req.user, content);
+    if (newMessage) {
+      broadcastNewMessage(ticket.id, newMessage);
+      const freshTicket = await ticketRepository.findById(ticket.id);
+      if (freshTicket) {
+        broadcastTicketUpdate(freshTicket);
+      }
     }
 
-    await ticketRepository.update(ticket.id, updateFields, timelineEvent);
-
-    delete newMessage._id;
     return res.status(200).json(newMessage);
   } catch (err) {
     next(err);
@@ -295,23 +209,11 @@ async function postNote(req, res, next) {
       return res.status(400).json({ message: 'Cannot add internal notes to a resolved ticket. Reopen it first.' });
     }
 
-    const now = new Date().toISOString();
-    const newNote = {
-      id: `msg_${Date.now()}`,
-      ticketId: ticket.id,
-      senderId: req.user.id,
-      senderName: req.user.name,
-      senderRole: req.user.role,
-      content: content.trim(),
-      timestamp: now,
-      isInternal: true
-    };
+    const newNote = await ticketService.addNote(ticket.id, req.user, content);
+    if (newNote) {
+      broadcastNewMessage(ticket.id, newNote);
+    }
 
-    await messageRepository.create(newNote);
-
-    await ticketRepository.update(ticket.id, { updatedAt: now }, null);
-
-    delete newNote._id;
     return res.status(200).json(newNote);
   } catch (err) {
     next(err);
