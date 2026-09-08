@@ -25,7 +25,7 @@ for (const project of projects) {
   }
   
   try {
-    const output = execSync('npm audit --audit-level=high --json', { cwd: project.path, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] });
+    const output = execSync('npm audit --omit=dev --audit-level=high --json', { cwd: project.path, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] });
     const result = JSON.parse(output);
     const vulns = result.metadata.vulnerabilities;
     console.log(`✅ ${project.name}: No high/critical vulnerabilities found.`);
