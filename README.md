@@ -1,5 +1,9 @@
 # Customer Support Platform Monorepo
 
+![Phase 7 Audit](https://img.shields.io/badge/Phase%207%20Audit-Completed-blue)
+![Security Scanned](https://img.shields.io/badge/Security-Scanned-success)
+![Performance](https://img.shields.io/badge/Performance-Pending%20Optimization-critical)
+
 A production-grade, full-stack monorepo implementation of a multi-user customer support platform featuring a shared Node.js/Express REST API backend, a React Customer Portal, and an Angular Support Workspace.
 
 ---

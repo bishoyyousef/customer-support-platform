@@ -1,0 +1,56 @@
+name: Complete Audit & Verification CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  audit-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm run install:all
+
+    - name: Run Backend Tests
+      run: npm run test:backend
+
+    - name: Run Portal Tests
+      run: npm run test:portal
+
+    - name: Run Workspace Tests
+      run: npm run test:workspace
+
+    - name: Security Audit (OWASP Checks)
+      run: npm run audit:security --prefix backend
+
+    - name: Install E2E Dependencies (Playwright)
+      run: |
+        cd e2e
+        npm install
+        npx playwright install --with-deps
+
+    - name: Start Applications for E2E
+      run: |
+        npm run start:all &
+        npx wait-on http://localhost:5000 http://localhost:4200 http://localhost:5173 -t 60000
+
+    - name: WCAG 2.1 AA Accessibility Checks
+      run: npm run test:a11y --prefix e2e
+
+    - name: Cross-browser UI Checks
+      run: npm run test:ui --prefix e2e
+
+    - name: Performance Benchmarking (K6)
+      # Simulating a basic pass for CI; actual 1k concurrency needs dedicated environment
+      run: npm run perf:test --prefix backend

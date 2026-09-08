@@ -506,7 +506,11 @@ import { HighlightPipe } from '../../shared/pipes/highlight.pipe';
       vertical-align: middle;
     }
     .density-table tr:hover {
-      background-color: var(--color-bg-base);
+      background-color: var(--color-bg-surface);
+      box-shadow: inset 2px 0 0 var(--color-accent);
+    }
+    [data-theme="dark"] .density-table tr:hover {
+      background-color: #27272a;
     }
     .ref-badge {
       font-size: var(--font-size-xs);

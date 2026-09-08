@@ -435,7 +435,11 @@ import { environment } from '../../../environments/environment';
       display: block;
     }
     .queue-item:hover {
-      background-color: var(--color-bg-base);
+      background-color: var(--color-bg-surface);
+      box-shadow: inset 2px 0 0 var(--color-accent);
+    }
+    [data-theme="dark"] .queue-item:hover {
+      background-color: #27272a;
     }
     .queue-item.active {
       background-color: var(--color-accent-light);
