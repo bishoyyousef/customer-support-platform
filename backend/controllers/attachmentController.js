@@ -101,6 +101,10 @@ async function downloadAttachment(req, res, next) {
     }
 
     const filePath = path.join(UPLOADS_DIR, msg.attachment.storagePath);
+    if (!filePath.startsWith(UPLOADS_DIR)) {
+      return res.status(403).json({ message: 'Forbidden: Invalid file path' });
+    }
+    
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ message: 'Attachment file not found on disk' });
     }

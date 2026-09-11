@@ -2,7 +2,9 @@ import express from 'express';
 import http from 'http';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import { connectDb } from './database/connection.js';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import { connectDb, checkConnection } from './database/connection.js';
 import { initSocketServer } from './socket.js';
 
 import authRoutes from './routes/authRoutes.js';
@@ -17,10 +19,57 @@ const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);
 
 // Top-level Middleware
-app.use(cors());
+app.use(helmet());
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:5173', 'http://localhost:4200'];
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
+
 app.use(bodyParser.json());
 
-// Health Check Endpoint
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window`
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api', apiLimiter);
+
+const authLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // Limit each IP to 10 login requests per `window`
+  message: { message: 'Too many login attempts, please try again after an hour' }
+});
+app.use('/api/auth', authLimiter);
+
+// Process Health Endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'healthy', uptime: process.uptime() });
+});
+
+// Dependency Readiness Endpoint
+app.get('/api/ready', async (req, res) => {
+  try {
+    const isConnected = checkConnection();
+    if (isConnected) {
+      res.status(200).json({ status: 'ready', database: 'connected' });
+    } else {
+      res.status(503).json({ status: 'unavailable', database: 'disconnected' });
+    }
+  } catch (err) {
+    res.status(503).json({ status: 'unavailable', database: 'error' });
+  }
+});
+
+// Legacy Health Check Endpoint
 app.get('/', (req, res) => {
   res.status(200).json({
     status: 'online',

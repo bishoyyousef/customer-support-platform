@@ -37,7 +37,20 @@ export async function runMigration(force = false) {
   const existingUsersCount = await userRepository.collection.countDocuments();
   if (existingUsersCount === 0 && dbData.users && dbData.users.length > 0) {
     console.log(`Migrating ${dbData.users.length} users...`);
-    await userRepository.insertMany(dbData.users);
+    
+    // Hash passwords dynamically for tests/seeding
+    const bcrypt = await import('bcryptjs');
+    const usersToInsert = [];
+    for (const user of dbData.users) {
+      const userCopy = { ...user };
+      if (userCopy.password && !userCopy.password.startsWith('$2')) {
+        const salt = await bcrypt.genSalt(10);
+        userCopy.password = await bcrypt.hash(userCopy.password, salt);
+      }
+      usersToInsert.push(userCopy);
+    }
+    
+    await userRepository.insertMany(usersToInsert);
     console.log('Users migration complete.');
   } else {
     console.log(`Users collection already has ${existingUsersCount} documents. Skipping insertion.`);

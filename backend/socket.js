@@ -1,26 +1,43 @@
 import { Server } from 'socket.io';
+import jwt from 'jsonwebtoken';
 import userRepository from './repositories/userRepository.js';
 
 let ioInstance = null;
 
 async function verifyToken(token) {
   if (!token) return null;
-  let username = token;
-  if (typeof token === 'string' && token.startsWith('mock-jwt-token-for-')) {
-    username = token.replace('mock-jwt-token-for-', '');
+  let decoded;
+  if (process.env.NODE_ENV === 'test' && typeof token === 'string' && token.startsWith('mock-jwt-token-for-')) {
+    decoded = { username: token.replace('mock-jwt-token-for-', '') };
+  } else {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) throw new Error('JWT_SECRET missing');
+    try {
+      decoded = jwt.verify(token, secret);
+    } catch (err) {
+      return null;
+    }
   }
-  const user = await userRepository.findByUsername(username);
-  if (!user) return null;
-  const safeUser = { ...user };
-  delete safeUser.password;
-  return safeUser;
+
+  try {
+    const user = await userRepository.findByUsername(decoded.username);
+    if (!user) return null;
+    const safeUser = { ...user };
+    delete safeUser.password;
+    return safeUser;
+  } catch (err) {
+    return null;
+  }
 }
 
 export function initSocketServer(server) {
+  const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:5173', 'http://localhost:4200'];
+  
   ioInstance = new Server(server, {
     cors: {
-      origin: '*',
-      methods: ['GET', 'POST', 'PATCH']
+      origin: allowedOrigins,
+      methods: ['GET', 'POST', 'PATCH'],
+      credentials: true
     }
   });
 

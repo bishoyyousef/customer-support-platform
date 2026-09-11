@@ -41,6 +41,11 @@ export async function connectDb(customUri = null, customDbName = null) {
     db = client.db(dbName);
     console.log(`Connected successfully to MongoDB database "${dbName}"`);
   } catch (err) {
+    if (process.env.NODE_ENV === 'production') {
+      console.error(`CRITICAL: MongoDB connection failed in production! Reason: ${err.message}`);
+      throw err; // Fail hard in production
+    }
+    
     if (!useMemoryDb && !customUri) {
       console.warn(`MongoDB connection attempt failed (${err.message}). Falling back to memory database...`);
       const { MongoMemoryServer } = await import('mongodb-memory-server');
@@ -87,4 +92,8 @@ export async function closeDb() {
 export function setDbInstance(dbInstance, clientInstance = null) {
   db = dbInstance;
   if (clientInstance) client = clientInstance;
+}
+
+export function checkConnection() {
+  return !!(client && client.topology && client.topology.isConnected());
 }

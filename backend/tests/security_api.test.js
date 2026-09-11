@@ -93,8 +93,8 @@ describe('Backend Security & Business Rules API Test Suite', () => {
     });
     assert.strictEqual(res.status, 200);
     const data = await res.json();
-    assert.ok(data.token);
-    assert.strictEqual(data.token, 'mock-jwt-token-for-alice');
+    assert.strictEqual(typeof data.token, 'string');
+    assert.ok(data.token.length > 20);
     assert.strictEqual(data.user.role, 'customer');
     assert.strictEqual(data.user.password, undefined); // Password stripped
   });
