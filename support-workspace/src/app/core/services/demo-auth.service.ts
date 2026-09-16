@@ -1,20 +1,17 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { User } from '../models';
-import { environment } from '../../../environments/environment';
 import { IAuthService } from './auth.service.interface';
+import { getDemoDB } from './demo-store';
 
 @Injectable({
   providedIn: 'root'
 })
-export class AuthService implements IAuthService {
-  private apiUrl = environment.apiUrl;
+export class DemoAuthService implements IAuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient) {
-    // Restore session on app load
+  constructor() {
     const storedToken = localStorage.getItem('support_platform_token');
     const storedUser = localStorage.getItem('support_platform_user');
     if (storedToken && storedUser) {
@@ -45,17 +42,23 @@ export class AuthService implements IAuthService {
   }
 
   login(username: string, password: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/auth/login`, { username, password }).pipe(
-      tap(res => {
-        // Enforce employee role check (Agent / Manager)
-        if (res.user.role !== 'agent' && res.user.role !== 'manager') {
-          throw new Error('Unauthorized access: Only support employees can log into this workspace.');
-        }
-        localStorage.setItem('support_platform_token', res.token);
-        localStorage.setItem('support_platform_user', JSON.stringify(res.user));
-        this.currentUserSubject.next(res.user);
-      })
-    );
+    const db = getDemoDB();
+    const user = db.users.find(u => u.username.toLowerCase() === username.toLowerCase());
+
+    if (!user) {
+      return throwError(() => new Error('Invalid credentials'));
+    }
+
+    if (user.role !== 'agent' && user.role !== 'manager') {
+      return throwError(() => new Error('Unauthorized access: Only support employees can log into this workspace.'));
+    }
+
+    const token = `demo-token-${user.id}`;
+    localStorage.setItem('support_platform_token', token);
+    localStorage.setItem('support_platform_user', JSON.stringify(user));
+    this.currentUserSubject.next(user);
+
+    return of({ token, user });
   }
 
   logout(): void {

@@ -1,7 +1,9 @@
-import { Injectable } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { Injectable, Optional } from '@angular/core';
+import { Subject } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 import { AuthService } from './auth.service';
+import { environment } from '../../../environments/environment';
+import { DemoEventService } from './demo-event.service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +20,16 @@ export class SocketService {
   private ticketCreatedSubject = new Subject<any>();
   public onTicketCreated$ = this.ticketCreatedSubject.asObservable();
 
-  constructor(private authService: AuthService) {
+  constructor(
+    private authService: AuthService,
+    @Optional() private demoEventService?: DemoEventService
+  ) {
+    if (this.demoEventService) {
+      this.demoEventService.newMessage$.subscribe(msg => this.newMessageSubject.next(msg));
+      this.demoEventService.ticketUpdated$.subscribe(t => this.ticketUpdatedSubject.next(t));
+      this.demoEventService.ticketCreated$.subscribe(t => this.ticketCreatedSubject.next(t));
+    }
+
     this.authService.currentUser$.subscribe((user) => {
       if (user) {
         this.connect();
@@ -32,11 +43,17 @@ export class SocketService {
     const token = this.authService.token;
     if (!token) return;
 
+    if ((environment as any).demoMode) {
+      // In Demo Mode, bypass network connection
+      return;
+    }
+
     if (this.socket) {
       this.socket.disconnect();
     }
 
-    this.socket = io('http://localhost:5000', {
+    const socketUrl = (environment as any).socketUrl || 'http://localhost:5000';
+    this.socket = io(socketUrl, {
       auth: { token },
       autoConnect: true
     });

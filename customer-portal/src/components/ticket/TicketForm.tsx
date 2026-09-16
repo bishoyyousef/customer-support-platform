@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../services/api';
+import { dataService } from '../../services/dataService';
 import { useToast } from '../../context/ToastContext';
 
 export const TicketForm: React.FC = () => {
@@ -65,7 +65,7 @@ export const TicketForm: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      await api.createTicket({
+      await dataService.createTicket({
         title: title.trim(),
         description: description.trim(),
         category,

@@ -35,11 +35,14 @@ app.use(cors({
 
 app.use(bodyParser.json());
 
+const rateLimitMax = parseInt(process.env.RATE_LIMIT_MAX || (process.env.NODE_ENV === 'production' ? '100' : '1000'), 10);
+
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per `window`
+  max: rateLimitMax, // Configurable request limit per IP
   standardHeaders: true,
   legacyHeaders: false,
+  message: { message: 'Too many requests from this IP, please try again after 15 minutes.' }
 });
 app.use('/api', apiLimiter);
 

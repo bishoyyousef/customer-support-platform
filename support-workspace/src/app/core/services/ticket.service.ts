@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap, map } from 'rxjs';
-import { Ticket, ManagerSummary } from '../models';
+import { Ticket, ManagerSummary, TicketStatus } from '../models';
 import { environment } from '../../../environments/environment';
+import { ITicketService } from './ticket.service.interface';
 
 @Injectable({
   providedIn: 'root'
 })
-export class TicketService {
+export class TicketService implements ITicketService {
   private apiUrl = `${environment.apiUrl}/tickets`;
   
   // Reactive ticket cache store
@@ -98,6 +99,25 @@ export class TicketService {
         }
       })
     );
+  }
+
+  postMessage(ticketId: string, content: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${ticketId}/messages`, { content });
+  }
+
+  addNote(ticketId: string, content: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${ticketId}/notes`, { content });
+  }
+
+  updateStatus(ticketId: string, status: TicketStatus): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${ticketId}`, { status });
+  }
+
+  resolveTicket(ticketId: string, resolutionSummary: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${ticketId}`, {
+      status: 'resolved',
+      resolutionSummary
+    });
   }
 
   uploadAttachment(ticketId: string, file: File, isInternal = false): Observable<any> {

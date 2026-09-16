@@ -1017,9 +1017,9 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
     const req$ = this.activeChannel === 'public' 
       ? this.ticketService.claimTicket(this.ticket.id, this.currentUser?.id || '').pipe(
           switchMap(() => this.ticketService.getTicketDetails(this.ticket!.id)), // Fetch details fresh
-          switchMap(() => this.httpPost(`${this.ticket!.id}/messages`, { content }))
+          switchMap(() => this.ticketService.postMessage(this.ticket!.id, content))
         )
-      : this.httpPost(`${this.ticket.id}/notes`, { content });
+      : this.ticketService.addNote(this.ticket.id, content);
 
     req$.subscribe({
       next: () => {
@@ -1064,7 +1064,7 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
     if (!this.ticket) return;
     this.isSubmitting = true;
     this.ticketService.reassignTicket(this.ticket.id, this.ticket.assignedTo).pipe(
-      switchMap(() => this.patchTicketField({ status }))
+      switchMap(() => this.ticketService.updateStatus(this.ticket!.id, status))
     ).subscribe({
       next: () => {
         this.toastService.addToast(`Status updated to ${this.getStatusText(status)}`, 'info');
@@ -1114,10 +1114,7 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
     if (!this.ticket || this.resolutionSummary.trim().length < 10) return;
     
     this.isSubmitting = true;
-    this.patchTicketField({
-      status: 'resolved',
-      resolutionSummary: this.resolutionSummary.trim()
-    }).subscribe({
+    this.ticketService.resolveTicket(this.ticket.id, this.resolutionSummary.trim()).subscribe({
       next: () => {
         this.toastService.addToast('Ticket resolved successfully', 'success');
         this.showResolveModal = false;
@@ -1132,16 +1129,6 @@ export class TicketDetailComponent implements OnInit, OnDestroy, AfterViewChecke
         this.isSubmitting = false;
       }
     });
-  }
-
-
-  // Native HttpClient wrappers for notes/messages to keep code simple
-  private httpPost(pathSuffix: string, body: any): Observable<any> {
-    return this.http.post(`${environment.apiUrl}/tickets/${pathSuffix}`, body);
-  }
-
-  private patchTicketField(body: any): Observable<any> {
-    return this.http.patch(`${environment.apiUrl}/tickets/${this.ticket!.id}`, body);
   }
 
   // CSS mappings

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { type User } from '../types';
-import { api } from '../services/api';
+import { dataService } from '../services/dataService';
 
 interface AuthContextType {
   user: User | null;
@@ -38,7 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (username: string, password: string) => {
     setIsLoading(true);
     try {
-      const res = await api.login(username, password);
+      const res = await dataService.login(username, password);
       // Validate customer role restriction
       if (res.user.role !== 'customer') {
         throw new Error('Unauthorized access: Only customer credentials can log into this portal.');

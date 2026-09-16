@@ -1,3 +1,6 @@
+import type { IPortalDataService, PaginatedTickets, TicketQueryParams } from './portalDataService.interface';
+import type { Ticket, User } from '../types';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 class ApiError extends Error {
@@ -36,13 +39,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       errorMessage = data.message || errorMessage;
       errors = data.errors || [];
     } catch {
-      // JSON parsing failure fallback
       errorMessage = response.statusText || errorMessage;
     }
     throw new ApiError(errorMessage, response.status, errors);
   }
 
-  // Handle 204 or empty responses
   if (response.status === 204) {
     return {} as T;
   }
@@ -89,15 +90,15 @@ async function requestWithResponse<T>(path: string, options: RequestInit = {}): 
   return { data, headers: response.headers };
 }
 
-export const api = {
-  login: async (username: string, password: string) => {
-    return request<{ token: string; user: any }>('auth/login', {
+export class RealPortalDataService implements IPortalDataService {
+  async login(username: string, password: string): Promise<{ token: string; user: User }> {
+    return request<{ token: string; user: User }>('auth/login', {
       method: 'POST',
       body: JSON.stringify({ username, password }),
     });
-  },
+  }
 
-  getTickets: async (params?: { page?: number; limit?: number; search?: string; status?: string; category?: string; urgency?: string; sort?: string; order?: string; queue?: string }) => {
+  async getTickets(params?: TicketQueryParams): Promise<PaginatedTickets> {
     const query = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, val]) => {
@@ -108,76 +109,83 @@ export const api = {
     }
     const queryString = query.toString();
     const path = queryString ? `tickets?${queryString}` : 'tickets';
-    return requestWithResponse<any[]>(path);
-  },
+    const res = await requestWithResponse<Ticket[]>(path);
+    
+    const page = parseInt(res.headers.get('X-Pagination-Page') || String(params?.page || 1), 10);
+    const totalPages = parseInt(res.headers.get('X-Pagination-Total-Pages') || '1', 10);
+    const totalCount = parseInt(res.headers.get('X-Pagination-Total-Count') || String(res.data.length), 10);
 
-  getTicketDetails: async (id: string) => {
-    return request<any>(`tickets/${id}`);
-  },
+    return {
+      items: res.data,
+      page,
+      totalPages,
+      totalCount,
+    };
+  }
 
-  createTicket: async (ticket: { title: string; description: string; category: string; urgency: string }) => {
-    return request<any>('tickets', {
+  async getTicketDetails(id: string): Promise<Ticket> {
+    return request<Ticket>(`tickets/${id}`);
+  }
+
+  async createTicket(ticket: { title: string; description: string; category: string; urgency: string }): Promise<Ticket> {
+    return request<Ticket>('tickets', {
       method: 'POST',
       body: JSON.stringify(ticket),
     });
-  },
+  }
 
-  updateTicket: async (id: string, updates: any) => {
-    return request<any>(`tickets/${id}`, {
+  async updateTicket(id: string, updates: Partial<Ticket>): Promise<Ticket> {
+    return request<Ticket>(`tickets/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(updates),
     });
-  },
+  }
 
-  postMessage: async (ticketId: string, content: string) => {
-    return request<any>(`tickets/${ticketId}/messages`, {
+  async addMessage(ticketId: string, content: string): Promise<Ticket> {
+    return request<Ticket>(`tickets/${ticketId}/messages`, {
       method: 'POST',
       body: JSON.stringify({ content }),
     });
-  },
+  }
 
-  addMessage: async (ticketId: string, content: string) => {
-    return request<any>(`tickets/${ticketId}/messages`, {
-      method: 'POST',
-      body: JSON.stringify({ content }),
-    });
-  },
-
-  uploadAttachment: async (ticketId: string, file: File) => {
+  async uploadAttachment(ticketId: string, file: File): Promise<Ticket> {
     const formData = new FormData();
     formData.append('attachment', file);
-    return request<any>(`tickets/${ticketId}/attachments`, {
+    return request<Ticket>(`tickets/${ticketId}/attachments`, {
       method: 'POST',
       body: formData,
     });
-  },
+  }
 
-  getSearchHistory: async () => {
+  async getSearchHistory(): Promise<string[]> {
     return request<string[]>('users/me/search-history');
-  },
+  }
 
-  addSearchHistory: async (query: string) => {
+  async addSearchHistory(query: string): Promise<string[]> {
     return request<string[]>('users/me/search-history', {
       method: 'POST',
       body: JSON.stringify({ query }),
     });
-  },
+  }
 
-  removeSearchHistory: async (query: string) => {
+  async removeSearchHistory(query: string): Promise<string[]> {
     return request<string[]>(`users/me/search-history?query=${encodeURIComponent(query)}`, {
       method: 'DELETE',
     });
-  },
+  }
 
-  clearSearchHistory: async () => {
+  async clearSearchHistory(): Promise<string[]> {
     return request<string[]>('users/me/search-history', {
       method: 'DELETE',
     });
-  },
+  }
 
-  getSuggestions: async (query: string) => {
+  async getSuggestions(query: string): Promise<{ type: string; text: string; subtext?: string; ticketId?: string }[]> {
     return request<{ type: string; text: string; subtext?: string; ticketId?: string }[]>(
       `tickets/suggestions?q=${encodeURIComponent(query)}`
     );
-  },
-};
+  }
+}
+
+// Backwards compatibility export instance
+export const api = new RealPortalDataService();

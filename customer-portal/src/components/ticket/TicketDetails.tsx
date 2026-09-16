@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { api } from '../../services/api';
+import { dataService } from '../../services/dataService';
 import { useAuth } from '../../context/AuthContext';
 import { type Ticket } from '../../types';
 import { TicketHeader } from './TicketHeader';
@@ -26,7 +26,7 @@ export const TicketDetails: React.FC = () => {
   const fetchDetails = async (showLoader = false) => {
     if (showLoader) setIsLoading(true);
     try {
-      const data = await api.getTicketDetails(id || '');
+      const data = await dataService.getTicketDetails(id || '');
       setTicket(data);
       setErrorMsg(null);
     } catch (err: any) {
@@ -99,7 +99,7 @@ export const TicketDetails: React.FC = () => {
 
     setIsSending(true);
     try {
-      const updated = await api.addMessage(ticket.id, newReply.trim());
+      const updated = await dataService.addMessage(ticket.id, newReply.trim());
       setTicket(updated);
       setNewReply('');
     } catch (err: any) {
@@ -113,7 +113,7 @@ export const TicketDetails: React.FC = () => {
     if (!ticket || isSending) return;
     setIsSending(true);
     try {
-      const updated = await api.addMessage(ticket.id, 'Customer requested to reopen this ticket.');
+      const updated = await dataService.addMessage(ticket.id, 'Customer requested to reopen this ticket.');
       setTicket(updated);
     } catch (err: any) {
       alert(err.message || 'Failed to reopen ticket.');
@@ -128,7 +128,7 @@ export const TicketDetails: React.FC = () => {
 
     setIsSending(true);
     try {
-      const updated = await api.uploadAttachment(ticket.id, file);
+      const updated = await dataService.uploadAttachment(ticket.id, file);
       setTicket(updated);
     } catch (err: any) {
       alert(err.message || 'File upload failed. Please try again.');

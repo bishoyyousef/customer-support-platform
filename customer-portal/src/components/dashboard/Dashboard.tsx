@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { api } from '../../services/api';
+import { dataService } from '../../services/dataService';
 import { type Ticket } from '../../types';
 import { SummaryCards } from './SummaryCards';
 import { TicketList } from './TicketList';
@@ -37,12 +37,12 @@ export const Dashboard: React.FC = () => {
   const [searchVal, setSearchVal] = useState('');
   const [debouncedSearchVal, setDebouncedSearchVal] = useState('');
 
-  // Summary counts state from backend custom headers
+  // Summary counts state
   const [activeCountVal, setActiveCountVal] = useState(0);
   const [pendingCountVal, setPendingCountVal] = useState(0);
   const [resolvedCountVal, setResolvedCountVal] = useState(0);
 
-  // Debounce search input (150ms for snappy responsiveness)
+  // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchVal(searchVal);
@@ -66,7 +66,7 @@ export const Dashboard: React.FC = () => {
         statusQuery = 'resolved';
       }
 
-      const res = await api.getTickets({
+      const res = await dataService.getTickets({
         page: currentPage,
         limit: 10,
         search: debouncedSearchVal,
@@ -75,23 +75,17 @@ export const Dashboard: React.FC = () => {
         status: statusQuery
       });
 
-      setTickets(res.data);
+      setTickets(res.items);
+      setCurrentPage(res.page);
+      setTotalPages(res.totalPages);
+      setTotalItems(res.totalCount);
 
-      // Parse custom pagination & summary count headers
-      const headerPage = parseInt(res.headers.get('X-Pagination-Page') || '1', 10);
-      const headerTotalPages = parseInt(res.headers.get('X-Pagination-Total-Pages') || '1', 10);
-      const headerTotalItems = parseInt(res.headers.get('X-Pagination-Total-Count') || '0', 10);
-      
-      const headerActive = parseInt(res.headers.get('X-Pagination-Active-Count') || '0', 10);
-      const headerPending = parseInt(res.headers.get('X-Pagination-Pending-Count') || '0', 10);
-      const headerResolved = parseInt(res.headers.get('X-Pagination-Resolved-Count') || '0', 10);
-
-      setCurrentPage(headerPage);
-      setTotalPages(headerTotalPages);
-      setTotalItems(headerTotalItems);
-      setActiveCountVal(headerActive);
-      setPendingCountVal(headerPending);
-      setResolvedCountVal(headerResolved);
+      // Fetch summary counts
+      const allRes = await dataService.getTickets({ limit: 1000 });
+      const allTickets = allRes.items;
+      setActiveCountVal(allTickets.filter(t => t.status === 'requires_attention' || t.status === 'under_investigation').length);
+      setPendingCountVal(allTickets.filter(t => t.status === 'pending_customer').length);
+      setResolvedCountVal(allTickets.filter(t => t.status === 'resolved').length);
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to retrieve support requests.');
     } finally {
@@ -99,7 +93,6 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  // Re-run fetching seamlessly without full UI unmounting/flicker
   useEffect(() => {
     fetchTickets(tickets.length === 0);
   }, [currentPage, debouncedSearchVal, selectedCategory, selectedUrgency, activeTab]);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../services/api';
+import { dataService } from '../../services/dataService';
 
 interface CommandPaletteModalProps {
   isOpen: boolean;
@@ -64,7 +64,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
     }
     const timer = setTimeout(async () => {
       try {
-        const res = await api.getSuggestions(query.trim());
+        const res = await dataService.getSuggestions(query.trim());
         setTicketSuggestions(res);
       } catch {
         setTicketSuggestions([]);

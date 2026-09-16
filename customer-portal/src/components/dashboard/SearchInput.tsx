@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { api } from '../../services/api';
+import { dataService } from '../../services/dataService';
 import { HighlightText } from '../common/HighlightText';
 
 interface SearchInputProps {
@@ -16,7 +16,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ searchQuery, onSearchC
   const [activeIndex, setActiveIndex] = useState<number>(-1);
 
   useEffect(() => {
-    api.getSearchHistory().then(setSearchHistory).catch(() => {});
+    dataService.getSearchHistory().then(setSearchHistory).catch(() => {});
   }, []);
 
   // Fetch dynamic suggestions when query >= 1 char (debounced 150ms)
@@ -24,7 +24,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ searchQuery, onSearchC
     if (searchQuery.trim().length >= 1) {
       setShowHistoryDropdown(true);
       const timer = setTimeout(() => {
-        api
+        dataService
           .getSuggestions(searchQuery.trim())
           .then((res) => {
             setSuggestions(res);
@@ -42,17 +42,17 @@ export const SearchInput: React.FC<SearchInputProps> = ({ searchQuery, onSearchC
   const saveToHistory = (query: string) => {
     const trimmed = query.trim();
     if (!trimmed) return;
-    api.addSearchHistory(trimmed).then(setSearchHistory).catch(() => {});
+    dataService.addSearchHistory(trimmed).then(setSearchHistory).catch(() => {});
   };
 
   const removeFromHistory = (itemToRemove: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    api.removeSearchHistory(itemToRemove).then(setSearchHistory).catch(() => {});
+    dataService.removeSearchHistory(itemToRemove).then(setSearchHistory).catch(() => {});
   };
 
   const clearSearchHistory = (e: React.MouseEvent) => {
     e.stopPropagation();
-    api.clearSearchHistory().then(setSearchHistory).catch(() => {});
+    dataService.clearSearchHistory().then(setSearchHistory).catch(() => {});
   };
 
   const isSuggestionMode = searchQuery.trim().length >= 1 && suggestions.length > 0;
