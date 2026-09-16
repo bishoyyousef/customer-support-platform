@@ -34,7 +34,9 @@ export const INITIAL_DEMO_TICKETS: Ticket[] = [
     activityTimeline: [
       { type: 'creation', message: 'Ticket created by Alice Johnson', timestamp: '2026-08-03T10:00:00.000Z', actorName: 'Alice Johnson' },
       { type: 'assignment', message: 'Assigned to Charlie Davis', timestamp: '2026-08-03T11:00:00.000Z', actorName: 'Charlie Davis' },
-      { type: 'status_change', message: 'Status updated to pending_customer', timestamp: '2026-08-21T15:25:18.467Z', actorName: 'Eve Foster' }
+      { type: 'note', message: 'Charlie Davis recorded an internal team note', timestamp: '2026-08-03T18:49:39.526Z', actorName: 'Charlie Davis' },
+      { type: 'status_change', message: 'Status updated from \'requires_attention\' to \'under_investigation\' by Eve Foster', timestamp: '2026-08-21T15:25:18.467Z', actorName: 'Eve Foster' },
+      { type: 'status_change', message: 'Status updated from \'requires_attention\' to \'pending_customer\' by Eve Foster', timestamp: '2026-08-21T15:27:33.036Z', actorName: 'Eve Foster' }
     ],
     messages: [
       { id: 'msg_1', senderId: 'cust_1', senderName: 'Alice Johnson', senderRole: 'customer', content: 'I tried to subscribe to premium, but checkout failed while still charging my card. Please reverse the second charge of $49.', timestamp: '2026-08-03T10:00:00.000Z', isInternal: false },
@@ -62,6 +64,214 @@ export const INITIAL_DEMO_TICKETS: Ticket[] = [
     messages: [
       { id: 'msg_7639_1', senderId: 'cust_1', senderName: 'Alice Johnson', senderRole: 'customer', content: 'I have another invoice concern with my account billing details', timestamp: '2026-08-03T18:49:39.570Z', isInternal: false }
     ]
+  },
+  {
+    id: 'TKT-8885',
+    title: 'Billing issue again',
+    description: 'I have another invoice concern with my account billing details',
+    category: 'Billing',
+    urgency: 'Medium',
+    status: 'requires_attention',
+    customerId: 'cust_1',
+    customerName: 'Alice Johnson',
+    assignedTo: 'agent_2',
+    assignedName: 'Diana Evans',
+    createdAt: '2026-08-03T18:50:08.352Z',
+    updatedAt: '2026-08-03T18:50:08.537Z',
+    resolutionSummary: 'Charge reversed and adjusted on standard invoice ledger.',
+    activityTimeline: [
+      { type: 'creation', message: 'Ticket created by Alice Johnson', timestamp: '2026-08-03T18:50:08.352Z', actorName: 'Alice Johnson' }
+    ],
+    messages: [
+      { id: 'msg_1785783008352', senderId: 'cust_1', senderName: 'Alice Johnson', senderRole: 'customer', content: 'I have another invoice concern with my account billing details', timestamp: '2026-08-03T18:50:08.352Z', isInternal: false }
+    ]
+  },
+  {
+    id: 'TEST-7-1786826095189',
+    title: 'Load Test Ticket 7',
+    description: 'This is a load test ticket data to check concurrent transactions.',
+    category: 'Technical',
+    urgency: 'Low',
+    status: 'requires_attention',
+    customerId: 'cust_1',
+    customerName: 'Alice Johnson',
+    assignedTo: null,
+    assignedName: null,
+    createdAt: '2026-08-15T20:34:55.189Z',
+    updatedAt: '2026-08-15T20:34:55.190Z',
+    resolutionSummary: null,
+    activityTimeline: [],
+    messages: []
+  },
+  {
+    id: 'TEST-8-1786826095200',
+    title: 'Load Test Ticket 8',
+    description: 'This is a load test ticket data to check concurrent transactions.',
+    category: 'Technical',
+    urgency: 'Low',
+    status: 'requires_attention',
+    customerId: 'cust_1',
+    customerName: 'Alice Johnson',
+    assignedTo: null,
+    assignedName: null,
+    createdAt: '2026-08-15T20:34:55.200Z',
+    updatedAt: '2026-08-15T20:34:55.200Z',
+    resolutionSummary: null,
+    activityTimeline: [],
+    messages: []
+  },
+  {
+    id: 'TEST-4-1786826095206',
+    title: 'Load Test Ticket 4',
+    description: 'This is a load test ticket data to check concurrent transactions.',
+    category: 'Technical',
+    urgency: 'Low',
+    status: 'requires_attention',
+    customerId: 'cust_1',
+    customerName: 'Alice Johnson',
+    assignedTo: null,
+    assignedName: null,
+    createdAt: '2026-08-15T20:34:55.206Z',
+    updatedAt: '2026-08-15T20:34:55.206Z',
+    resolutionSummary: null,
+    activityTimeline: [],
+    messages: []
+  },
+  {
+    id: 'TEST-40-1786826095213',
+    title: 'Load Test Ticket 40',
+    description: 'This is a load test ticket data to check concurrent transactions.',
+    category: 'Technical',
+    urgency: 'Low',
+    status: 'requires_attention',
+    customerId: 'cust_1',
+    customerName: 'Alice Johnson',
+    assignedTo: null,
+    assignedName: null,
+    createdAt: '2026-08-15T20:34:55.213Z',
+    updatedAt: '2026-08-15T20:34:55.213Z',
+    resolutionSummary: null,
+    activityTimeline: [],
+    messages: []
+  },
+  {
+    id: 'TEST-42-1786826095217',
+    title: 'Load Test Ticket 42',
+    description: 'This is a load test ticket data to check concurrent transactions.',
+    category: 'Technical',
+    urgency: 'Low',
+    status: 'requires_attention',
+    customerId: 'cust_1',
+    customerName: 'Alice Johnson',
+    assignedTo: 'mgr_1',
+    assignedName: 'Eve Foster',
+    createdAt: '2026-08-15T20:34:55.217Z',
+    updatedAt: '2026-08-17T18:13:32.719Z',
+    resolutionSummary: null,
+    activityTimeline: [],
+    messages: []
+  },
+  {
+    id: 'TEST-6-1786826095224',
+    title: 'Load Test Ticket 6',
+    description: 'This is a load test ticket data to check concurrent transactions.',
+    category: 'Technical',
+    urgency: 'Low',
+    status: 'resolved',
+    customerId: 'cust_1',
+    customerName: 'Alice Johnson',
+    assignedTo: 'agent_1',
+    assignedName: 'Charlie Davis',
+    createdAt: '2026-08-15T20:34:55.224Z',
+    updatedAt: '2026-08-17T18:12:12.245Z',
+    resolutionSummary: 'it is solved',
+    activityTimeline: [],
+    messages: []
+  },
+  {
+    id: 'TEST-29-1786826095228',
+    title: 'Load Test Ticket 29',
+    description: 'This is a load test ticket data to check concurrent transactions.',
+    category: 'Technical',
+    urgency: 'Low',
+    status: 'requires_attention',
+    customerId: 'cust_1',
+    customerName: 'Alice Johnson',
+    assignedTo: null,
+    assignedName: null,
+    createdAt: '2026-08-15T20:34:55.228Z',
+    updatedAt: '2026-08-15T20:34:55.228Z',
+    resolutionSummary: null,
+    activityTimeline: [],
+    messages: []
+  },
+  {
+    id: 'TEST-20-1786826095232',
+    title: 'Load Test Ticket 20',
+    description: 'This is a load test ticket data to check concurrent transactions.',
+    category: 'Technical',
+    urgency: 'Low',
+    status: 'requires_attention',
+    customerId: 'cust_1',
+    customerName: 'Alice Johnson',
+    assignedTo: 'mgr_1',
+    assignedName: 'Eve Foster',
+    createdAt: '2026-08-15T20:34:55.232Z',
+    updatedAt: '2026-08-21T15:28:40.616Z',
+    resolutionSummary: null,
+    activityTimeline: [],
+    messages: []
+  },
+  {
+    id: 'TEST-33-1786826095238',
+    title: 'Load Test Ticket 33',
+    description: 'This is a load test ticket data to check concurrent transactions.',
+    category: 'Technical',
+    urgency: 'Low',
+    status: 'requires_attention',
+    customerId: 'cust_1',
+    customerName: 'Alice Johnson',
+    assignedTo: null,
+    assignedName: null,
+    createdAt: '2026-08-15T20:34:55.238Z',
+    updatedAt: '2026-08-15T20:34:55.238Z',
+    resolutionSummary: null,
+    activityTimeline: [],
+    messages: []
+  },
+  {
+    id: 'TEST-36-1786826095243',
+    title: 'Load Test Ticket 36',
+    description: 'This is a load test ticket data to check concurrent transactions.',
+    category: 'Technical',
+    urgency: 'Low',
+    status: 'requires_attention',
+    customerId: 'cust_1',
+    customerName: 'Alice Johnson',
+    assignedTo: null,
+    assignedName: null,
+    createdAt: '2026-08-15T20:34:55.243Z',
+    updatedAt: '2026-08-15T20:34:55.243Z',
+    resolutionSummary: null,
+    activityTimeline: [],
+    messages: []
+  },
+  {
+    id: 'TEST-1-1786826095247',
+    title: 'Load Test Ticket 1',
+    description: 'This is a load test ticket data to check concurrent transactions.',
+    category: 'Technical',
+    urgency: 'Low',
+    status: 'resolved',
+    customerId: 'cust_1',
+    customerName: 'Alice Johnson',
+    assignedTo: 'agent_1',
+    assignedName: 'Charlie Davis',
+    createdAt: '2026-08-15T20:34:55.247Z',
+    updatedAt: '2026-08-17T17:59:34.995Z',
+    resolutionSummary: 'i tried to do 1 2 3.......',
+    activityTimeline: [],
+    messages: []
   },
   {
     id: 'TKT-1797',
@@ -97,7 +307,7 @@ export const INITIAL_DEMO_TICKETS: Ticket[] = [
     assignedName: 'Charlie Davis',
     createdAt: '2026-08-17T18:05:03.464Z',
     updatedAt: '2026-08-17T18:09:38.620Z',
-    resolutionSummary: 'Issue resolved by assisting customer with security link.',
+    resolutionSummary: 'i solved it',
     activityTimeline: [
       { type: 'creation', message: 'Ticket created by Alice Johnson', timestamp: '2026-08-17T18:05:03.464Z', actorName: 'Alice Johnson' }
     ],
@@ -106,24 +316,24 @@ export const INITIAL_DEMO_TICKETS: Ticket[] = [
     ]
   },
   {
-    id: 'TKT-2002',
-    title: 'Account upgrade inquiry',
-    description: 'Interested in upgrading our enterprise seats plan',
-    category: 'Account',
+    id: 'TKT-1327',
+    title: 'password reset',
+    description: 'hfhhfhfhjjjjjjjj',
+    category: 'Billing',
     urgency: 'Medium',
-    status: 'under_investigation',
-    customerId: 'cust_2',
-    customerName: 'Bob Smith',
-    assignedTo: 'agent_2',
-    assignedName: 'Diana Evans',
-    createdAt: '2026-08-18T09:12:00.000Z',
-    updatedAt: '2026-08-18T10:00:00.000Z',
+    status: 'requires_attention',
+    customerId: 'cust_1',
+    customerName: 'Alice Johnson',
+    assignedTo: null,
+    assignedName: null,
+    createdAt: '2026-08-21T15:30:26.377Z',
+    updatedAt: '2026-08-21T15:30:26.377Z',
     resolutionSummary: null,
     activityTimeline: [
-      { type: 'creation', message: 'Ticket created by Bob Smith', timestamp: '2026-08-18T09:12:00.000Z', actorName: 'Bob Smith' }
+      { type: 'creation', message: 'Ticket created by Alice Johnson', timestamp: '2026-08-21T15:30:26.377Z', actorName: 'Alice Johnson' }
     ],
     messages: [
-      { id: 'msg_2002_1', senderId: 'cust_2', senderName: 'Bob Smith', senderRole: 'customer', content: 'Interested in upgrading our enterprise seats plan', timestamp: '2026-08-18T09:12:00.000Z', isInternal: false }
+      { id: 'msg_1787326226377', senderId: 'cust_1', senderName: 'Alice Johnson', senderRole: 'customer', content: 'hfhhfhfhjjjjjjjj', timestamp: '2026-08-21T15:30:26.377Z', isInternal: false }
     ]
   }
 ];
@@ -132,10 +342,14 @@ export function getDemoDB(): DemoDB {
   try {
     const raw = localStorage.getItem(DEMO_STORAGE_KEY);
     if (raw) {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.tickets) && Array.isArray(parsed.users)) {
+        return parsed;
+      }
+      console.warn('[DemoStore] Stored Demo DB structure is invalid. Re-initializing from seed data.');
     }
-  } catch {
-    // Ignore JSON parse errors
+  } catch (err) {
+    console.warn('[DemoStore] Failed to read or parse saved Demo DB from localStorage. Re-initializing from seed data.', err);
   }
 
   const defaultDB: DemoDB = {
@@ -147,7 +361,11 @@ export function getDemoDB(): DemoDB {
 }
 
 export function saveDemoDB(db: DemoDB): void {
-  localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(db));
+  try {
+    localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(db));
+  } catch (err) {
+    console.error('[DemoStore] Failed to save Demo DB to localStorage', err);
+  }
 }
 
 export function resetDemoData(): void {
