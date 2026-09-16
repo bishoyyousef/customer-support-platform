@@ -16,10 +16,10 @@ export const TicketMessageList: React.FC<TicketMessageListProps> = ({
   formatDate,
   timelineEndRef,
 }) => {
-  const getInitials = (name: string) => {
-    if (!name) return 'U';
+  const getInitials = (name?: string) => {
+    if (!name || typeof name !== 'string') return 'U';
     const parts = name.trim().split(' ');
-    if (parts.length >= 2) {
+    if (parts.length >= 2 && parts[0] && parts[1]) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
     return name.substring(0, 2).toUpperCase();
@@ -28,6 +28,8 @@ export const TicketMessageList: React.FC<TicketMessageListProps> = ({
   return (
     <div style={styles.timelineFeed}>
       {timelineFeed.map((item, idx) => {
+        if (!item || !item.data) return null;
+
         if (item.type === 'activity') {
           const act: ActivityEvent = item.data;
           return (
@@ -44,6 +46,7 @@ export const TicketMessageList: React.FC<TicketMessageListProps> = ({
           );
         } else {
           const msg: Message = item.data;
+          if (!msg || msg.isInternal) return null;
           const isOwnMessage = msg.senderId === user?.id;
           const avatarClass = isOwnMessage ? 'heroui-avatar heroui-avatar-customer' : 'heroui-avatar heroui-avatar-agent';
 

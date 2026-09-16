@@ -17,6 +17,7 @@ export const Dashboard: React.FC = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedUrgency, setSelectedUrgency] = useState('All');
+  const [selectedSort, setSelectedSort] = useState('createdAt-desc');
   const [activeTab, setActiveTab] = useState<'active' | 'pending' | 'resolved'>('active');
 
   // Sync query parameters (e.g. ?tab=pending or ?urgency=High)
@@ -66,13 +67,16 @@ export const Dashboard: React.FC = () => {
         statusQuery = 'resolved';
       }
 
+      const [sortField, sortOrder] = selectedSort.split('-');
       const res = await dataService.getTickets({
         page: currentPage,
         limit: 10,
         search: debouncedSearchVal,
         category: selectedCategory === 'All' ? undefined : selectedCategory,
         urgency: selectedUrgency === 'All' ? undefined : selectedUrgency,
-        status: statusQuery
+        status: statusQuery,
+        sort: sortField === 'createdAt' ? 'updatedAt' : sortField,
+        order: sortOrder
       });
 
       setTickets(res.items);
@@ -95,7 +99,7 @@ export const Dashboard: React.FC = () => {
 
   useEffect(() => {
     fetchTickets(tickets.length === 0);
-  }, [currentPage, debouncedSearchVal, selectedCategory, selectedUrgency, activeTab]);
+  }, [currentPage, debouncedSearchVal, selectedCategory, selectedUrgency, selectedSort, activeTab]);
 
   return (
     <div>
@@ -142,16 +146,19 @@ export const Dashboard: React.FC = () => {
             searchQuery={searchVal}
             selectedCategory={selectedCategory}
             selectedUrgency={selectedUrgency}
+            selectedSort={selectedSort}
             activeTab={activeTab}
             onPageChange={setCurrentPage}
             onSearchChange={setSearchVal}
             onCategoryChange={(cat) => { setSelectedCategory(cat); setCurrentPage(1); }}
             onUrgencyChange={(urg) => { setSelectedUrgency(urg); setCurrentPage(1); }}
+            onSortChange={(sort) => { setSelectedSort(sort); setCurrentPage(1); }}
             onTabChange={(tab) => { setActiveTab(tab); setCurrentPage(1); }}
             onClearFilters={() => {
               setSearchVal('');
               setSelectedCategory('All');
               setSelectedUrgency('All');
+              setSelectedSort('createdAt-desc');
               setCurrentPage(1);
             }}
           />

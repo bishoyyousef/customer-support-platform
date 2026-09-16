@@ -44,7 +44,8 @@ export class DemoPortalDataService implements IPortalDataService {
         list = list.filter(t => t.urgency === params.urgency);
       }
       if (params.status) {
-        list = list.filter(t => t.status === params.status);
+        const statuses = params.status.split(',');
+        list = list.filter(t => statuses.includes(t.status));
       }
       if (params.search && params.search.trim()) {
         const q = params.search.toLowerCase().trim();
@@ -56,8 +57,26 @@ export class DemoPortalDataService implements IPortalDataService {
       }
     }
 
-    // Sort by createdAt desc
-    list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    // Sorting logic (ASC and DESC)
+    const isAsc = params?.order === 'asc' || (params?.sort && params.sort.endsWith('-asc'));
+    const sortField = params?.sort ? params.sort.replace(/-asc|-desc/, '') : 'createdAt';
+
+    if (sortField === 'urgency') {
+      const urgencyWeight: { [key: string]: number } = { 'High': 3, 'Medium': 2, 'Low': 1 };
+      list.sort((a, b) => {
+        const wA = urgencyWeight[a.urgency] || 0;
+        const wB = urgencyWeight[b.urgency] || 0;
+        return isAsc ? wA - wB : wB - wA;
+      });
+    } else if (sortField === 'category') {
+      list.sort((a, b) => isAsc ? a.category.localeCompare(b.category) : b.category.localeCompare(a.category));
+    } else {
+      list.sort((a, b) => {
+        const timeA = new Date(a.updatedAt || a.createdAt).getTime();
+        const timeB = new Date(b.updatedAt || b.createdAt).getTime();
+        return isAsc ? timeA - timeB : timeB - timeA;
+      });
+    }
 
     const page = params?.page || 1;
     const limit = params?.limit || 10;
@@ -176,8 +195,9 @@ export class DemoPortalDataService implements IPortalDataService {
     };
 
     const now = new Date().toISOString();
-    const newMessage: Message = {
+    const newMessage: Message & { ticketId?: string } = {
       id: `msg_${Date.now()}`,
+      ticketId: ticketId,
       senderId: currentUser.id,
       senderName: currentUser.name,
       senderRole: currentUser.role,
@@ -233,8 +253,9 @@ export class DemoPortalDataService implements IPortalDataService {
     };
 
     const now = new Date().toISOString();
-    const newMessage: Message = {
+    const newMessage: Message & { ticketId?: string } = {
       id: `msg_${Date.now()}`,
+      ticketId: ticketId,
       senderId: currentUser.id,
       senderName: currentUser.name,
       senderRole: currentUser.role,

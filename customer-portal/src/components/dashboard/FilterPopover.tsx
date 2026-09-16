@@ -3,22 +3,26 @@ import React, { useState } from 'react';
 interface FilterPopoverProps {
   selectedCategory: string;
   selectedUrgency: string;
+  selectedSort: string;
   searchQuery: string;
   categories: string[];
   urgencies: string[];
   onCategoryChange: (category: string) => void;
   onUrgencyChange: (urgency: string) => void;
+  onSortChange: (sort: string) => void;
   onClearFilters: () => void;
 }
 
 export const FilterPopover: React.FC<FilterPopoverProps> = ({
   selectedCategory,
   selectedUrgency,
+  selectedSort,
   searchQuery,
   categories,
   urgencies,
   onCategoryChange,
   onUrgencyChange,
+  onSortChange,
   onClearFilters,
 }) => {
   const [showFilterPopover, setShowFilterPopover] = useState(false);
@@ -96,6 +100,23 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
                   {c === 'All' ? 'All Categories' : c}
                 </option>
               ))}
+            </select>
+          </div>
+
+          <div style={{ marginBottom: '0.75rem' }}>
+            <label className="form-label" style={{ fontSize: '0.8rem', marginBottom: '0.25rem', display: 'block' }}>
+              Sort Order
+            </label>
+            <select
+              className="form-control"
+              style={{ width: '100%' }}
+              value={selectedSort}
+              onChange={(e) => onSortChange(e.target.value)}
+            >
+              <option value="createdAt-desc">Date (Newest First)</option>
+              <option value="createdAt-asc">Date (Oldest First)</option>
+              <option value="urgency-desc">Urgency (High to Low)</option>
+              <option value="urgency-asc">Urgency (Low to High)</option>
             </select>
           </div>
 

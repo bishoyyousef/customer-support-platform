@@ -66,16 +66,26 @@ export class DemoTicketService implements ITicketService {
       }
 
       if (paramsObj.sort) {
-        if (paramsObj.sort.startsWith('urgency')) {
+        const isAsc = paramsObj.order === 'asc' || paramsObj.sort.endsWith('-asc');
+        const sortKey = paramsObj.sort.replace(/-asc|-desc/, '');
+        if (sortKey === 'urgency') {
           const urgencyWeight: { [key: string]: number } = { 'High': 3, 'Medium': 2, 'Low': 1 };
           list.sort((a, b) => {
             const wA = urgencyWeight[a.urgency] || 0;
             const wB = urgencyWeight[b.urgency] || 0;
-            return paramsObj.sort === 'urgency-desc' ? wB - wA : wA - wB;
+            return isAsc ? wA - wB : wB - wA;
           });
+        } else if (sortKey === 'category') {
+          list.sort((a, b) => isAsc ? a.category.localeCompare(b.category) : b.category.localeCompare(a.category));
         } else {
-          list.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+          list.sort((a, b) => {
+            const timeA = new Date(a.updatedAt || a.createdAt).getTime();
+            const timeB = new Date(b.updatedAt || b.createdAt).getTime();
+            return isAsc ? timeA - timeB : timeB - timeA;
+          });
         }
+      } else {
+        list.sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime());
       }
     }
 

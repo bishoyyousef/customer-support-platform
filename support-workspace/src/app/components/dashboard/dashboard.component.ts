@@ -690,6 +690,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         if (!currentUser) return [];
 
         const [sortField, sortOrder] = sort.split('-');
+        const sortParam = sortField === 'date' ? 'updatedAt' : sortField;
 
         const params: any = {
           page,
@@ -697,7 +698,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           search: search.trim() || undefined,
           category: category === 'All' ? undefined : category,
           urgency: urgency === 'All' ? undefined : urgency,
-          sort: sortField,
+          sort: sortParam,
           order: sortOrder,
           queue: tab
         };

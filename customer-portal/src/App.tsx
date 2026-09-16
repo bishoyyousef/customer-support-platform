@@ -226,16 +226,56 @@ export const AppContent: React.FC = () => {
 
 import { SocketProvider } from './context/SocketContext';
 
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: any) {
+    console.error('Unhandled UI exception in Customer Portal:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '3rem 1.5rem', textAlign: 'center', maxWidth: '480px', margin: '4rem auto', backgroundColor: 'var(--color-bg-surface, #fff)', borderRadius: '12px', border: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+          <h3 style={{ marginBottom: '0.5rem', color: 'var(--color-danger, #ef4444)' }}>Something went wrong</h3>
+          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
+            {this.state.error?.message || 'A temporary UI rendering issue occurred.'}
+          </p>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              this.setState({ hasError: false, error: null });
+              window.location.reload();
+            }}
+          >
+            Reload Component
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <SocketProvider>
-        <ToastProvider>
-          <ToastContainer />
-          <AppContent />
-        </ToastProvider>
-      </SocketProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <SocketProvider>
+          <ToastProvider>
+            <ToastContainer />
+            <AppContent />
+          </ToastProvider>
+        </SocketProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 };
 

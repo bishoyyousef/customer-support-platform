@@ -15,11 +15,13 @@ interface TicketListProps {
   searchQuery: string;
   selectedCategory: string;
   selectedUrgency: string;
+  selectedSort: string;
   activeTab: 'active' | 'pending' | 'resolved';
   onPageChange: (page: number) => void;
   onSearchChange: (search: string) => void;
   onCategoryChange: (category: string) => void;
   onUrgencyChange: (urgency: string) => void;
+  onSortChange: (sort: string) => void;
   onTabChange: (tab: 'active' | 'pending' | 'resolved') => void;
   onClearFilters: () => void;
 }
@@ -33,11 +35,13 @@ export const TicketList: React.FC<TicketListProps> = ({
   searchQuery,
   selectedCategory,
   selectedUrgency,
+  selectedSort,
   activeTab,
   onPageChange,
   onSearchChange,
   onCategoryChange,
   onUrgencyChange,
+  onSortChange,
   onTabChange,
   onClearFilters,
 }) => {
@@ -95,11 +99,13 @@ export const TicketList: React.FC<TicketListProps> = ({
         <FilterPopover
           selectedCategory={selectedCategory}
           selectedUrgency={selectedUrgency}
+          selectedSort={selectedSort}
           searchQuery={searchQuery}
           categories={categories}
           urgencies={urgencies}
           onCategoryChange={onCategoryChange}
           onUrgencyChange={onUrgencyChange}
+          onSortChange={onSortChange}
           onClearFilters={onClearFilters}
         />
       </div>

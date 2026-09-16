@@ -104,8 +104,11 @@ class TicketRepository {
     }
 
     // 4. Sort & Paginate
-    const sortField = queryParams.sort || 'updatedAt';
-    const order = queryParams.order === 'asc' ? 1 : -1;
+    let sortField = queryParams.sort || 'updatedAt';
+    if (sortField === 'date' || sortField === 'date-asc' || sortField === 'date-desc') {
+      sortField = 'updatedAt';
+    }
+    const order = (queryParams.order === 'asc' || (queryParams.sort && queryParams.sort.endsWith('-asc'))) ? 1 : -1;
 
     const totalItems = await this.collection.countDocuments(query);
     const isPaginationRequested = queryParams.page !== undefined || queryParams.limit !== undefined;
@@ -144,7 +147,9 @@ class TicketRepository {
       // Standard indexed query & sort
       const sortObj = {};
       sortObj[sortField] = order;
-      sortObj.updatedAt = -1; // tie-breaker
+      if (sortField !== 'updatedAt') {
+        sortObj.updatedAt = -1; // tie-breaker
+      }
 
       let cursor = this.collection.find(query).sort(sortObj);
       if (isPaginationRequested) {

@@ -61,22 +61,34 @@ export const TicketDetails: React.FC = () => {
     if (!socket || !id) return;
 
     const handleNewMessage = (msg: any) => {
-      if (msg.ticketId === id) {
-        setTicket((prev) => {
-          if (!prev) return prev;
-          const exists = prev.messages.some((m) => m.id === msg.id);
-          if (exists) return prev;
-          return {
-            ...prev,
-            messages: [...prev.messages, msg],
-          };
-        });
-      }
+      if (!msg || (msg.ticketId && msg.ticketId !== id) || msg.isInternal) return;
+      setTicket((prev) => {
+        if (!prev) return prev;
+        const currentMessages = Array.isArray(prev.messages) ? prev.messages : [];
+        const exists = currentMessages.some((m) => m && m.id === msg.id);
+        if (exists) return prev;
+        return {
+          ...prev,
+          messages: [...currentMessages, msg],
+        };
+      });
     };
 
     const handleTicketUpdated = (updatedTicket: any) => {
-      if (updatedTicket.id === id) {
-        setTicket(updatedTicket);
+      if (updatedTicket && updatedTicket.id === id) {
+        setTicket((prev) => {
+          if (!prev) return updatedTicket;
+          return {
+            ...prev,
+            ...updatedTicket,
+            messages: Array.isArray(updatedTicket.messages)
+              ? updatedTicket.messages
+              : (Array.isArray(prev.messages) ? prev.messages : []),
+            activityTimeline: Array.isArray(updatedTicket.activityTimeline)
+              ? updatedTicket.activityTimeline
+              : (Array.isArray(prev.activityTimeline) ? prev.activityTimeline : []),
+          };
+        });
       }
     };
 
@@ -191,12 +203,16 @@ export const TicketDetails: React.FC = () => {
   }
 
   const timelineFeed: Array<{ type: 'message' | 'activity'; timestamp: string; data: any }> = [];
+  const rawMessages = Array.isArray(ticket?.messages) ? ticket.messages : [];
+  const rawActivity = Array.isArray(ticket?.activityTimeline) ? ticket.activityTimeline : [];
 
-  ticket.messages.forEach((msg) => {
-    timelineFeed.push({ type: 'message', timestamp: msg.timestamp, data: msg });
+  rawMessages.forEach((msg) => {
+    if (!msg || msg.isInternal) return; // Hide internal notes from customer view
+    timelineFeed.push({ type: 'message', timestamp: msg.timestamp || new Date().toISOString(), data: msg });
   });
 
-  ticket.activityTimeline.forEach((act) => {
+  rawActivity.forEach((act) => {
+    if (!act) return;
     const rawMsg = act.message || '';
     const lower = rawMsg.toLowerCase();
 
@@ -235,7 +251,7 @@ export const TicketDetails: React.FC = () => {
 
     timelineFeed.push({
       type: 'activity',
-      timestamp: act.timestamp,
+      timestamp: act.timestamp || new Date().toISOString(),
       data: { ...act, message: cleanMessage }
     });
   });

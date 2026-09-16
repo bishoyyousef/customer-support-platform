@@ -7,6 +7,7 @@
     "start:backend": "npm start --prefix backend",
     "start:portal": "npm run dev --prefix customer-portal",
     "start:workspace": "npm start --prefix support-workspace",
+    "start:demo": "npx concurrently \"npm run dev:demo --prefix customer-portal\" \"npm run start:demo --prefix support-workspace\"",
     "start:all": "npx concurrently \"npm run start:backend\" \"npm run start:portal\" \"npm run start:workspace\"",
     "test:backend": "npm test --prefix backend",
     "test:portal": "npm test --prefix customer-portal",
