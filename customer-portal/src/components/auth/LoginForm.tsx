@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { setDemoModeOverride } from '../../services/dataService';
 
 export const LoginForm: React.FC = () => {
   const { login } = useAuth();
@@ -52,13 +53,25 @@ export const LoginForm: React.FC = () => {
         </div>
 
         {errorMsg && (
-          <div className="alert alert-danger" role="alert">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-            <span>{errorMsg}</span>
+          <div className="alert alert-danger" role="alert" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <span>{errorMsg}</span>
+            </div>
+            {errorMsg.toLowerCase().includes('network') || errorMsg.toLowerCase().includes('connect') || errorMsg.toLowerCase().includes('fetch') ? (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ marginTop: '0.25rem', fontSize: 'var(--font-size-xs)', padding: '0.35rem 0.75rem' }}
+                onClick={() => setDemoModeOverride(true)}
+              >
+                ⚡ Switch to Browser Demo Mode
+              </button>
+            ) : null}
           </div>
         )}
 

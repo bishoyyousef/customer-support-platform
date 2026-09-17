@@ -26,10 +26,20 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(`${API_BASE_URL}/${path}`, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/${path}`, {
+      ...options,
+      headers,
+    });
+  } catch (err: any) {
+    if (err instanceof ApiError) throw err;
+    const msg = err?.message || 'Failed to fetch';
+    throw new ApiError(
+      `Network Error: Unable to connect to backend API at ${API_BASE_URL}. (${msg})`,
+      0
+    );
+  }
 
   if (!response.ok) {
     let errorMessage = 'An error occurred';
