@@ -8,6 +8,18 @@ A production-grade, full-stack monorepo implementation of a multi-user customer 
 
 ---
 
+## 🌐 Live Applications & Monorepo Links
+
+Since this repository is a **Monorepo**, it contains **two distinct frontend applications** and **one shared backend service**:
+
+| Application | Technology | Folder Path | Live Deployment / Local Demo |
+| :--- | :--- | :--- | :--- |
+| **Customer Portal** | React 18 + Vite + TS | [`/customer-portal`](./customer-portal) | `npm run start:portal` (or Vercel Project 1) |
+| **Support Workspace** | Angular 19 + RxJS | [`/support-workspace`](./support-workspace) | `npm run start:workspace` (or Vercel Project 2) |
+| **Backend REST API** | Node.js + Express + MongoDB | [`/backend`](./backend) | `npm run start:backend` |
+
+---
+
 ## 🏗️ System Architecture & Engineering Highlights
 
 This project is engineered as a decoupled, multi-client ecosystem:
@@ -113,8 +125,19 @@ npm run build
 cd support-workspace
 npm install
 npm run build --configuration=production
-# Serve the `/dist/support-workspace/browser` folder using Nginx, Caddy, or S3
-```
+### 3. Deploying Both Applications on Vercel from One GitHub Repo
+
+Because this is a single GitHub repository hosting multiple apps (a **Monorepo**):
+1. **Create Project 1 in Vercel (Customer Portal)**:
+   - Import `bishoyyousef/customer-support-platform` in Vercel.
+   - Set **Root Directory** to `customer-portal`.
+   - Framework Preset: **Vite**.
+   - Output Directory: `dist`.
+2. **Create Project 2 in Vercel (Support Workspace)**:
+   - Import the same `bishoyyousef/customer-support-platform` repo in Vercel.
+   - Set **Root Directory** to `support-workspace`.
+   - Framework Preset: **Angular**.
+   - Output Directory: `dist/support-workspace/browser`.
 
 ---
 
