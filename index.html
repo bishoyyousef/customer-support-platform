@@ -619,7 +619,7 @@
           </div>
         </div>
 
-        <a id="portalLink" href="./customer-portal" class="launch-btn react-btn" target="_blank" rel="noopener">
+        <a id="portalLink" href="https://customer-support-platform-psi.vercel.app/" class="launch-btn react-btn" target="_blank" rel="noopener">
           <span>Launch Customer Portal</span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         </a>
@@ -671,7 +671,7 @@
           </div>
         </div>
 
-        <a id="workspaceLink" href="./support-workspace" class="launch-btn angular-btn" target="_blank" rel="noopener">
+        <a id="workspaceLink" href="https://customer-support-platform-xqym.vercel.app/login" class="launch-btn angular-btn" target="_blank" rel="noopener">
           <span>Launch Support Workspace</span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         </a>
@@ -688,11 +688,11 @@
       <div class="config-grid">
         <div class="form-group">
           <label for="portalUrlInput">Customer Portal URL</label>
-          <input type="text" id="portalUrlInput" placeholder="./customer-portal or https://customer-portal.vercel.app">
+          <input type="text" id="portalUrlInput" placeholder="https://customer-support-platform-psi.vercel.app/">
         </div>
         <div class="form-group">
           <label for="workspaceUrlInput">Support Workspace URL</label>
-          <input type="text" id="workspaceUrlInput" placeholder="./support-workspace or https://support-workspace.vercel.app">
+          <input type="text" id="workspaceUrlInput" placeholder="https://customer-support-platform-xqym.vercel.app/login">
         </div>
       </div>
     </section>
@@ -754,8 +754,11 @@
     const portalUrlInput = document.getElementById('portalUrlInput');
     const workspaceUrlInput = document.getElementById('workspaceUrlInput');
 
-    const savedPortalUrl = localStorage.getItem('custom_portal_url') || './customer-portal';
-    const savedWorkspaceUrl = localStorage.getItem('custom_workspace_url') || './support-workspace';
+    const defaultPortalUrl = 'https://customer-support-platform-psi.vercel.app/';
+    const defaultWorkspaceUrl = 'https://customer-support-platform-xqym.vercel.app/login';
+
+    const savedPortalUrl = localStorage.getItem('custom_portal_url') || defaultPortalUrl;
+    const savedWorkspaceUrl = localStorage.getItem('custom_workspace_url') || defaultWorkspaceUrl;
 
     portalUrlInput.value = savedPortalUrl;
     workspaceUrlInput.value = savedWorkspaceUrl;
@@ -763,13 +766,13 @@
     workspaceLink.href = savedWorkspaceUrl;
 
     portalUrlInput.addEventListener('input', (e) => {
-      const val = e.target.value.trim() || './customer-portal';
+      const val = e.target.value.trim() || defaultPortalUrl;
       portalLink.href = val;
       localStorage.setItem('custom_portal_url', val);
     });
 
     workspaceUrlInput.addEventListener('input', (e) => {
-      const val = e.target.value.trim() || './support-workspace';
+      const val = e.target.value.trim() || defaultWorkspaceUrl;
       workspaceLink.href = val;
       localStorage.setItem('custom_workspace_url', val);
     });

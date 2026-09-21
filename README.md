@@ -12,12 +12,12 @@ A production-grade, full-stack monorepo implementation of a multi-user customer 
 
 Since this repository is a **Monorepo**, it contains **two distinct frontend applications** and **one shared backend service**:
 
-| Application | Technology | Folder Path | Live Deployment / Local Demo |
-| :--- | :--- | :--- | :--- |
-| **Landing Page Hub** | HTML5 + CSS3 (Glassmorphism) | [`/index.html`](./index.html) | `npm run start:landing` (Root Vercel Entry) |
-| **Customer Portal** | React 18 + Vite + TS | [`/customer-portal`](./customer-portal) | `npm run start:portal` (or Vercel Project 1) |
-| **Support Workspace** | Angular 19 + RxJS | [`/support-workspace`](./support-workspace) | `npm run start:workspace` (or Vercel Project 2) |
-| **Backend REST API** | Node.js + Express + MongoDB | [`/backend`](./backend) | `npm run start:backend` |
+| Application | Technology | Folder Path | Live Production URL | Local Launch Command |
+| :--- | :--- | :--- | :--- | :--- |
+| **Landing Page Hub** | HTML5 + CSS3 | [`/index.html`](./index.html) | Root Monorepo Entry | `npm run start:landing` |
+| **Customer Portal** | React 18 + Vite + TS | [`/customer-portal`](./customer-portal) | [🔗 Launch Customer Portal](https://customer-support-platform-psi.vercel.app/) | `npm run start:portal` |
+| **Support Workspace** | Angular 19 + RxJS | [`/support-workspace`](./support-workspace) | [🔗 Launch Support Workspace](https://customer-support-platform-xqym.vercel.app/login) | `npm run start:workspace` |
+| **Backend REST API** | Node.js + Express + MongoDB | [`/backend`](./backend) | Cloud REST API | `npm run start:backend` |
 
 ---
 
