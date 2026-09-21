@@ -14,6 +14,7 @@ Since this repository is a **Monorepo**, it contains **two distinct frontend app
 
 | Application | Technology | Folder Path | Live Deployment / Local Demo |
 | :--- | :--- | :--- | :--- |
+| **Landing Page Hub** | HTML5 + CSS3 (Glassmorphism) | [`/index.html`](./index.html) | `npm run start:landing` (Root Vercel Entry) |
 | **Customer Portal** | React 18 + Vite + TS | [`/customer-portal`](./customer-portal) | `npm run start:portal` (or Vercel Project 1) |
 | **Support Workspace** | Angular 19 + RxJS | [`/support-workspace`](./support-workspace) | `npm run start:workspace` (or Vercel Project 2) |
 | **Backend REST API** | Node.js + Express + MongoDB | [`/backend`](./backend) | `npm run start:backend` |
