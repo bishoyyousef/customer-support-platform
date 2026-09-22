@@ -3,39 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Customer Support Platform</title>
-  <meta name="description" content="Central hub for Customer Portal and Support Workspace applications.">
+  <title>Customer Support Platform • Monorepo Hub</title>
+  <meta name="description" content="Production-grade Customer Support Platform Monorepo linking React Customer Portal and Angular Support Workspace.">
   
-  <!-- Clean Inter Font -->
+  <!-- Premium Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --bg-color: #090d16;
-      --card-bg: #111726;
-      --card-border: #1e293b;
+      --bg-base: #030712;
+      --bg-mesh: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.22) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.18) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(56, 189, 248, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.18) 0px, transparent 50%);
+      --card-bg: rgba(15, 23, 42, 0.65);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --card-hover-border: rgba(129, 140, 248, 0.5);
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
-      --accent-color: #3b82f6;
-      --accent-hover: #2563eb;
-      --btn-secondary-bg: #1e293b;
-      --btn-secondary-hover: #334155;
-      --radius: 12px;
-      --radius-sm: 8px;
+      --text-sub: #cbd5e1;
+      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+      --react-glow: rgba(56, 189, 248, 0.25);
+      --angular-glow: rgba(244, 63, 94, 0.25);
+      --shadow-card: 0 20px 50px -10px rgba(0, 0, 0, 0.5);
+      --shadow-hover: 0 30px 60px -12px rgba(99, 102, 241, 0.3);
+      --radius-xl: 24px;
+      --radius-lg: 16px;
+      --radius-md: 12px;
     }
 
     [data-theme="light"] {
-      --bg-color: #f8fafc;
-      --card-bg: #ffffff;
-      --card-border: #e2e8f0;
+      --bg-base: #f8fafc;
+      --bg-mesh: 
+        radial-gradient(at 0% 0%, rgba(199, 210, 254, 0.5) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(251, 207, 232, 0.4) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(186, 230, 253, 0.5) 0px, transparent 50%);
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --card-border: rgba(0, 0, 0, 0.08);
+      --card-hover-border: rgba(99, 102, 241, 0.5);
       --text-main: #0f172a;
       --text-muted: #64748b;
-      --accent-color: #2563eb;
-      --accent-hover: #1d4ed8;
-      --btn-secondary-bg: #f1f5f9;
-      --btn-secondary-hover: #e2e8f0;
+      --text-sub: #334155;
+      --shadow-card: 0 20px 40px -15px rgba(0, 0, 0, 0.07);
+      --shadow-hover: 0 30px 60px -15px rgba(99, 102, 241, 0.2);
     }
 
     * {
@@ -45,180 +58,409 @@
     }
 
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg-color);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-base);
+      background-image: var(--bg-mesh);
+      background-attachment: fixed;
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 2rem 1.5rem;
-      transition: background-color 0.2s ease, color 0.2s ease;
+      padding: 2.5rem 1.5rem;
+      transition: background 0.3s ease, color 0.3s ease;
+      overflow-x: hidden;
     }
 
     .container {
       width: 100%;
-      max-width: 900px;
+      max-width: 1120px;
       margin: 0 auto;
     }
 
-    /* Header */
+    /* Ambient Background Glows */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.5;
+      animation: float 10s ease-in-out infinite alternate;
+    }
+
+    .orb-1 {
+      top: -100px;
+      left: -100px;
+      width: 400px;
+      height: 400px;
+      background: rgba(99, 102, 241, 0.3);
+    }
+
+    .orb-2 {
+      bottom: -150px;
+      right: -100px;
+      width: 500px;
+      height: 500px;
+      background: rgba(236, 72, 153, 0.25);
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px) rotate(0deg); }
+      100% { transform: translateY(30px) rotate(10deg); }
+    }
+
+    /* Navbar Header */
     header {
+      position: relative;
+      z-index: 10;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 3rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 4rem;
+      padding: 0.75rem 1.25rem;
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid var(--card-border);
+      border-radius: 9999px;
+      backdrop-filter: blur(16px);
+    }
+
+    [data-theme="light"] header {
+      background: rgba(255, 255, 255, 0.6);
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.85rem;
     }
 
-    .brand-logo {
-      width: 36px;
-      height: 36px;
-      border-radius: var(--radius-sm);
-      background-color: var(--accent-color);
-      color: #ffffff;
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--accent-gradient);
       display: flex;
       align-items: center;
       justify-content: center;
+      color: #ffffff;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
     }
 
     .brand-title {
-      font-size: 1.15rem;
-      font-weight: 700;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 800;
       letter-spacing: -0.01em;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
-    .theme-btn {
-      background: var(--card-bg);
+    [data-theme="light"] .brand-title {
+      background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.9rem;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #10b981;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #10b981;
+      box-shadow: 0 0 10px #10b981;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .theme-toggle {
+      background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--card-border);
       color: var(--text-main);
-      width: 36px;
-      height: 36px;
-      border-radius: var(--radius-sm);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.25s ease;
     }
 
-    .theme-btn:hover {
-      border-color: var(--accent-color);
+    .theme-toggle:hover {
+      background: rgba(99, 102, 241, 0.15);
+      border-color: rgba(99, 102, 241, 0.4);
+      transform: rotate(15deg);
     }
 
-    /* Hero */
+    /* Hero Section */
     .hero {
+      position: relative;
+      z-index: 10;
       text-align: center;
-      margin-bottom: 3rem;
+      margin-bottom: 4rem;
     }
 
-    .hero h1 {
-      font-size: 2.25rem;
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1.1rem;
+      border-radius: 9999px;
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      color: #a5b4fc;
+      font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: -0.02em;
-      margin-bottom: 0.75rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
     }
 
-    .hero p {
-      font-size: 1.05rem;
+    [data-theme="light"] .hero-tag {
+      color: #4f46e5;
+    }
+
+    .hero-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 3.5rem;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 1.25rem;
+      letter-spacing: -0.03em;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #ffffff 0%, #818cf8 40%, #c084fc 80%, #f43f5e 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    [data-theme="light"] .gradient-text {
+      background: linear-gradient(135deg, #0f172a 0%, #3b82f6 40%, #8b5cf6 80%, #ec4899 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 1.2rem;
       color: var(--text-muted);
-      max-width: 540px;
+      max-width: 680px;
       margin: 0 auto;
-      line-height: 1.5;
+      line-height: 1.6;
+      font-weight: 400;
     }
 
-    /* Grid */
-    .grid {
+    /* Cards Grid */
+    .apps-grid {
+      position: relative;
+      z-index: 10;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 3rem;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 2.25rem;
+      margin-bottom: 4rem;
     }
 
     .card {
-      background-color: var(--card-bg);
+      background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      padding: 1.75rem;
+      border-radius: var(--radius-xl);
+      padding: 2.5rem;
+      backdrop-filter: blur(20px);
+      box-shadow: var(--shadow-card);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: border-color 0.2s ease, transform 0.2s ease;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      transition: all 0.3s ease;
+    }
+
+    .react-card::before {
+      background: linear-gradient(90deg, #38bdf8 0%, #6366f1 100%);
+    }
+
+    .angular-card::before {
+      background: linear-gradient(90deg, #f43f5e 0%, #a855f7 100%);
     }
 
     .card:hover {
-      border-color: var(--accent-color);
-      transform: translateY(-2px);
+      transform: translateY(-8px) scale(1.01);
+      border-color: var(--card-hover-border);
+      box-shadow: var(--shadow-hover);
     }
 
-    .card-badge {
-      display: inline-block;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--accent-color);
-      margin-bottom: 0.75rem;
+    .card-top {
+      margin-bottom: 2rem;
     }
 
-    .card-title {
-      font-size: 1.35rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-
-    .card-desc {
-      font-size: 0.925rem;
-      color: var(--text-muted);
-      line-height: 1.5;
-      margin-bottom: 1.5rem;
-    }
-
-    /* Accounts Box */
-    .accounts-box {
-      background-color: var(--btn-secondary-bg);
-      border-radius: var(--radius-sm);
-      padding: 0.85rem 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .accounts-title {
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-      margin-bottom: 0.5rem;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .account-row {
+    .card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 0.85rem;
-      padding: 0.35rem 0;
+      margin-bottom: 1.5rem;
     }
 
-    .account-row:not(:last-child) {
-      border-bottom: 1px solid var(--card-border);
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.825rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .react-pill {
+      background: rgba(56, 189, 248, 0.12);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .angular-pill {
+      background: rgba(244, 63, 94, 0.12);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .client-tag {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+
+    .card-desc {
+      font-size: 1rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 1.75rem;
+    }
+
+    /* Accounts Credential Box */
+    .accounts-box {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-lg);
+      padding: 1.1rem 1.25rem;
+      backdrop-filter: blur(10px);
+    }
+
+    [data-theme="light"] .accounts-box {
+      background: rgba(241, 245, 249, 0.8);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .accounts-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.775rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .accounts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .account-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 0.5rem 0.85rem;
+      border-radius: var(--radius-md);
+      transition: background 0.2s ease;
+    }
+
+    [data-theme="light"] .account-item {
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .account-item:hover {
+      background: rgba(99, 102, 241, 0.12);
     }
 
     .account-name {
-      font-weight: 500;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .account-right {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
     }
 
     .account-user {
-      color: var(--text-muted);
       font-family: monospace;
+      font-size: 0.85rem;
+      color: #a5b4fc;
+      background: rgba(99, 102, 241, 0.15);
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    [data-theme="light"] .account-user {
+      color: #4f46e5;
+      background: rgba(99, 102, 241, 0.1);
     }
 
     .copy-btn {
@@ -226,57 +468,85 @@
       border: none;
       color: var(--text-muted);
       cursor: pointer;
-      padding: 0.2rem;
+      padding: 0.25rem;
+      border-radius: 4px;
       display: flex;
       align-items: center;
-      transition: color 0.2s ease;
+      transition: all 0.2s ease;
     }
 
     .copy-btn:hover {
-      color: var(--accent-color);
+      color: #38bdf8;
+      transform: scale(1.15);
     }
 
-    /* Buttons */
-    .btn {
+    /* Action Buttons */
+    .launch-btn {
+      position: relative;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 0.5rem;
+      gap: 0.75rem;
       width: 100%;
-      padding: 0.8rem 1.25rem;
-      border-radius: var(--radius-sm);
-      font-size: 0.95rem;
-      font-weight: 600;
+      padding: 1.1rem 1.75rem;
+      border-radius: var(--radius-lg);
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
       text-decoration: none;
       cursor: pointer;
-      transition: background-color 0.2s ease;
       border: none;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
     }
 
-    .btn-primary {
-      background-color: var(--accent-color);
+    .react-btn {
+      background: linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #4f46e5 100%);
       color: #ffffff;
+      box-shadow: 0 10px 30px rgba(2, 132, 199, 0.35);
     }
 
-    .btn-primary:hover {
-      background-color: var(--accent-hover);
+    .react-btn:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 50%, #4338ca 100%);
+      box-shadow: 0 15px 35px rgba(2, 132, 199, 0.5);
     }
 
-    /* Toast */
+    .angular-btn {
+      background: linear-gradient(135deg, #e11d48 0%, #9333ea 50%, #c084fc 100%);
+      color: #ffffff;
+      box-shadow: 0 10px 30px rgba(225, 29, 72, 0.35);
+    }
+
+    .angular-btn:hover {
+      background: linear-gradient(135deg, #be123c 0%, #7e22ce 50%, #a855f7 100%);
+      box-shadow: 0 15px 35px rgba(225, 29, 72, 0.5);
+    }
+
+    .launch-btn svg {
+      transition: transform 0.25s ease;
+    }
+
+    .launch-btn:hover svg {
+      transform: translateX(5px);
+    }
+
+    /* Toast Notification */
     .toast {
       position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      background-color: #10b981;
+      bottom: 2.5rem;
+      right: 2.5rem;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       color: #ffffff;
-      padding: 0.65rem 1rem;
-      border-radius: var(--radius-sm);
-      font-size: 0.875rem;
-      font-weight: 500;
+      padding: 0.85rem 1.5rem;
+      border-radius: var(--radius-md);
+      font-weight: 700;
+      font-size: 0.95rem;
+      box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
       transform: translateY(100px);
       opacity: 0;
-      transition: all 0.25s ease;
-      z-index: 100;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
     }
 
     .toast.show {
@@ -286,140 +556,203 @@
 
     /* Footer */
     footer {
+      position: relative;
+      z-index: 10;
       text-align: center;
-      font-size: 0.85rem;
       color: var(--text-muted);
-      padding-top: 1.5rem;
+      font-size: 0.9rem;
+      padding-top: 2rem;
       border-top: 1px solid var(--card-border);
       width: 100%;
     }
 
     footer a {
-      color: var(--accent-color);
+      color: #818cf8;
       text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s ease;
     }
 
     footer a:hover {
+      color: #c084fc;
       text-decoration: underline;
+    }
+
+    @media (max-width: 640px) {
+      .hero-title {
+        font-size: 2.5rem;
+      }
+      .apps-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
 
+  <!-- Ambient Glow Orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
   <div class="container">
-    <!-- Header -->
+
+    <!-- Navbar Header -->
     <header>
       <div class="brand">
-        <div class="brand-logo">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
           </svg>
         </div>
         <span class="brand-title">Customer Support Platform</span>
       </div>
 
-      <button class="theme-btn" id="themeToggle" title="Toggle Theme" aria-label="Toggle Theme">
-        <svg id="moonIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
-        <svg id="sunIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
-          <circle cx="12" cy="12" r="5"/>
-          <line x1="12" y1="1" x2="12" y2="3"/>
-          <line x1="12" y1="21" x2="12" y2="23"/>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-          <line x1="1" y1="12" x2="3" y2="12"/>
-          <line x1="21" y1="12" x2="23" y2="12"/>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-        </svg>
-      </button>
+      <div class="header-controls">
+        <div class="status-pill">
+          <span class="status-dot"></span>
+          <span>Live Monorepo</span>
+        </div>
+
+        <button class="theme-toggle" id="themeToggle" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+          <svg id="moonIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+          <svg id="sunIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        </button>
+      </div>
     </header>
 
-    <!-- Hero -->
+    <!-- Hero Section -->
     <section class="hero">
-      <h1>Select Application</h1>
-      <p>Choose between the React Customer Portal for end-users or the Angular Support Workspace for support personnel.</p>
+      <div class="hero-tag">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Production Applications Launcher
+      </div>
+      <h1 class="hero-title">
+        Select Your Application <span class="gradient-text">Portal</span>
+      </h1>
+      <p class="hero-subtitle">
+        Launch the end-user React Customer Portal or the high-density Angular Support Agent Workspace built on a unified, decoupled REST architecture.
+      </p>
     </section>
 
-    <!-- Grid -->
-    <main class="grid">
+    <!-- Apps Showcase Cards -->
+    <main class="apps-grid">
 
-      <!-- Customer Portal -->
-      <article class="card">
-        <div>
-          <span class="card-badge">React 18 • Vite</span>
+      <!-- React Customer Portal Card -->
+      <article class="card react-card">
+        <div class="card-top">
+          <div class="card-header">
+            <span class="badge-pill react-pill">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="2.5"/>
+                <ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="currentColor" stroke-width="1.5" transform="rotate(30 12 12)"/>
+                <ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="currentColor" stroke-width="1.5" transform="rotate(90 12 12)"/>
+                <ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="currentColor" stroke-width="1.5" transform="rotate(150 12 12)"/>
+              </svg>
+              React 18 • Vite
+            </span>
+            <span class="client-tag">Customer Client</span>
+          </div>
+
           <h2 class="card-title">Customer Portal</h2>
-          <p class="card-desc">Submit new support requests, view ticket timelines, upload attachments, and chat live with support.</p>
+          <p class="card-desc">
+            End-user self-service portal for submitting tickets, tracking resolution timelines, uploading attachments, and chatting live with support.
+          </p>
 
           <div class="accounts-box">
-            <div class="accounts-title">
-              <span>Test Credentials</span>
+            <div class="accounts-header">
+              <span>Test Customer Credentials</span>
               <span>Pass: password</span>
             </div>
-            <div class="account-row">
-              <span class="account-name">Alice Johnson</span>
-              <div style="display: flex; align-items: center; gap: 0.4rem;">
-                <span class="account-user">alice</span>
-                <button class="copy-btn" onclick="copyText('alice')" title="Copy username">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                </button>
+            <div class="accounts-list">
+              <div class="account-item">
+                <span class="account-name">Alice Johnson</span>
+                <div class="account-right">
+                  <span class="account-user">alice</span>
+                  <button class="copy-btn" onclick="copyToClipboard('alice')" title="Copy username">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </button>
+                </div>
               </div>
-            </div>
-            <div class="account-row">
-              <span class="account-name">Bob Smith</span>
-              <div style="display: flex; align-items: center; gap: 0.4rem;">
-                <span class="account-user">bob</span>
-                <button class="copy-btn" onclick="copyText('bob')" title="Copy username">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                </button>
+              <div class="account-item">
+                <span class="account-name">Bob Smith</span>
+                <div class="account-right">
+                  <span class="account-user">bob</span>
+                  <button class="copy-btn" onclick="copyToClipboard('bob')" title="Copy username">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <a href="https://customer-support-platform-psi.vercel.app/" class="btn btn-primary" target="_blank" rel="noopener">
-          <span>Open Customer Portal</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        <a href="https://customer-support-platform-psi.vercel.app/" class="launch-btn react-btn" target="_blank" rel="noopener">
+          <span>Launch Customer Portal</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
       </article>
 
-      <!-- Support Workspace -->
-      <article class="card">
-        <div>
-          <span class="card-badge">Angular 19 • RxJS</span>
+      <!-- Angular Support Workspace Card -->
+      <article class="card angular-card">
+        <div class="card-top">
+          <div class="card-header">
+            <span class="badge-pill angular-pill">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2.5L2.8 5.8l1.4 12.3L12 21.5l7.8-3.4 1.4-12.3L12 2.5zm0 2.5l5.5 2.4-1 9.1-4.5 2-4.5-2-1-9.1L12 5z"/>
+              </svg>
+              Angular 19 • RxJS
+            </span>
+            <span class="client-tag">Internal Operational</span>
+          </div>
+
           <h2 class="card-title">Support Workspace</h2>
-          <p class="card-desc">High-density dashboard for agents and managers to filter queues, assign tickets, and view analytics.</p>
+          <p class="card-desc">
+            High-density operational dashboard for agents and managers to filter queues, assign tickets, update resolution status, and view analytics.
+          </p>
 
           <div class="accounts-box">
-            <div class="accounts-title">
-              <span>Test Credentials</span>
+            <div class="accounts-header">
+              <span>Test Employee Credentials</span>
               <span>Pass: password</span>
             </div>
-            <div class="account-row">
-              <span class="account-name">Charlie Davis (Agent)</span>
-              <div style="display: flex; align-items: center; gap: 0.4rem;">
-                <span class="account-user">agent_charlie</span>
-                <button class="copy-btn" onclick="copyText('agent_charlie')" title="Copy username">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                </button>
+            <div class="accounts-list">
+              <div class="account-item">
+                <span class="account-name">Charlie Davis (Agent)</span>
+                <div class="account-right">
+                  <span class="account-user">agent_charlie</span>
+                  <button class="copy-btn" onclick="copyToClipboard('agent_charlie')" title="Copy username">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </button>
+                </div>
               </div>
-            </div>
-            <div class="account-row">
-              <span class="account-name">Eve Foster (Manager)</span>
-              <div style="display: flex; align-items: center; gap: 0.4rem;">
-                <span class="account-user">manager_eve</span>
-                <button class="copy-btn" onclick="copyText('manager_eve')" title="Copy username">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                </button>
+              <div class="account-item">
+                <span class="account-name">Eve Foster (Manager)</span>
+                <div class="account-right">
+                  <span class="account-user">manager_eve</span>
+                  <button class="copy-btn" onclick="copyToClipboard('manager_eve')" title="Copy username">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <a href="https://customer-support-platform-xqym.vercel.app/login" class="btn btn-primary" target="_blank" rel="noopener">
-          <span>Open Support Workspace</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        <a href="https://customer-support-platform-xqym.vercel.app/login" class="launch-btn angular-btn" target="_blank" rel="noopener">
+          <span>Launch Support Workspace</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
       </article>
 
@@ -427,13 +760,15 @@
 
     <!-- Footer -->
     <footer>
-      <p>Customer Support Monorepo • <a href="https://github.com/bishoyyousef/customer-support-platform" target="_blank" rel="noopener">GitHub Repository</a></p>
+      <p>Customer Support Platform Monorepo • View codebase on <a href="https://github.com/bishoyyousef/customer-support-platform" target="_blank" rel="noopener">GitHub</a></p>
     </footer>
+
   </div>
 
   <div id="toast" class="toast">Copied to clipboard!</div>
 
   <script>
+    // Theme Switcher
     const themeToggle = document.getElementById('themeToggle');
     const moonIcon = document.getElementById('moonIcon');
     const sunIcon = document.getElementById('sunIcon');
@@ -458,12 +793,13 @@
       setTheme(current === 'dark' ? 'light' : 'dark');
     });
 
-    function copyText(text) {
+    // Copy Tooltip Helper
+    function copyToClipboard(text) {
       navigator.clipboard.writeText(text).then(() => {
         const toast = document.getElementById('toast');
-        toast.textContent = `Copied "${text}"`;
+        toast.textContent = `Copied "${text}" to clipboard!`;
         toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2000);
+        setTimeout(() => toast.classList.remove('show'), 2200);
       });
     }
   </script>
