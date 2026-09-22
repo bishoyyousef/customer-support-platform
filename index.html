@@ -3,38 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Customer Support Platform Monorepo Hub</title>
-  <meta name="description" content="Central landing page and launcher for Customer Portal (React) and Support Workspace (Angular).">
+  <title>Customer Support Platform</title>
+  <meta name="description" content="Central hub for Customer Portal and Support Workspace applications.">
   
-  <!-- Modern Google Fonts -->
+  <!-- Clean Inter Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --bg-gradient: radial-gradient(circle at 50% -20%, #1e1b4b 0%, #0f172a 45%, #020617 100%);
-      --card-bg: rgba(15, 23, 42, 0.65);
-      --card-border: rgba(255, 255, 255, 0.1);
-      --card-hover-border: rgba(99, 102, 241, 0.4);
+      --bg-color: #090d16;
+      --card-bg: #111726;
+      --card-border: #1e293b;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
-      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      --accent-react: #38bdf8;
-      --accent-angular: #f43f5e;
-      --radius-lg: 20px;
-      --radius-md: 12px;
-      --shadow-glow: 0 0 30px rgba(99, 102, 241, 0.15);
+      --accent-color: #3b82f6;
+      --accent-hover: #2563eb;
+      --btn-secondary-bg: #1e293b;
+      --btn-secondary-hover: #334155;
+      --radius: 12px;
+      --radius-sm: 8px;
     }
 
     [data-theme="light"] {
-      --bg-gradient: radial-gradient(circle at 50% -20%, #e0e7ff 0%, #f1f5f9 45%, #f8fafc 100%);
-      --card-bg: rgba(255, 255, 255, 0.85);
-      --card-border: rgba(0, 0, 0, 0.08);
-      --card-hover-border: rgba(99, 102, 241, 0.5);
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
       --text-main: #0f172a;
       --text-muted: #64748b;
-      --shadow-glow: 0 10px 25px rgba(99, 102, 241, 0.1);
+      --accent-color: #2563eb;
+      --accent-hover: #1d4ed8;
+      --btn-secondary-bg: #f1f5f9;
+      --btn-secondary-hover: #e2e8f0;
     }
 
     * {
@@ -44,30 +45,31 @@
     }
 
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg-gradient);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-color);
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
       justify-content: space-between;
-      padding: 2.5rem 1.5rem;
-      transition: background 0.3s ease, color 0.3s ease;
+      padding: 2rem 1.5rem;
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
 
     .container {
       width: 100%;
-      max-width: 1100px;
+      max-width: 900px;
       margin: 0 auto;
     }
 
-    /* Navbar Header */
+    /* Header */
     header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 3.5rem;
+      margin-bottom: 3rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--card-border);
     }
 
     .brand {
@@ -76,281 +78,147 @@
       gap: 0.75rem;
     }
 
-    .brand-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: var(--radius-md);
-      background: var(--primary-gradient);
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background-color: var(--accent-color);
+      color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #ffffff;
-      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
     }
 
     .brand-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 1.5rem;
+      font-size: 1.15rem;
       font-weight: 700;
-      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.01em;
     }
 
-    [data-theme="light"] .brand-title {
-      background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.4rem 0.85rem;
-      border-radius: 9999px;
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      color: #10b981;
-      font-size: 0.825rem;
-      font-weight: 500;
-    }
-
-    .pulse-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background-color: #10b981;
-      box-shadow: 0 0 8px #10b981;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-    }
-
-    .icon-btn {
+    .theme-btn {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       color: var(--text-main);
-      width: 40px;
-      height: 40px;
-      border-radius: var(--radius-md);
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       transition: all 0.2s ease;
-      backdrop-filter: blur(12px);
     }
 
-    .icon-btn:hover {
-      border-color: var(--card-hover-border);
+    .theme-btn:hover {
+      border-color: var(--accent-color);
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .hero h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+    }
+
+    .hero p {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      max-width: 540px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: var(--accent-color);
       transform: translateY(-2px);
     }
 
-    /* Hero Section */
-    .hero {
-      text-align: center;
-      margin-bottom: 3.5rem;
-    }
-
-    .hero-badge {
+    .card-badge {
       display: inline-block;
-      padding: 0.35rem 1rem;
-      border-radius: 9999px;
-      background: rgba(99, 102, 241, 0.1);
-      border: 1px solid rgba(99, 102, 241, 0.25);
-      color: #818cf8;
-      font-size: 0.85rem;
+      font-size: 0.75rem;
       font-weight: 600;
-      letter-spacing: 0.05em;
       text-transform: uppercase;
-      margin-bottom: 1.25rem;
-    }
-
-    .hero-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 3rem;
-      font-weight: 800;
-      line-height: 1.15;
-      margin-bottom: 1rem;
-      letter-spacing: -0.02em;
-    }
-
-    .hero-subtitle {
-      font-size: 1.15rem;
-      color: var(--text-muted);
-      max-width: 650px;
-      margin: 0 auto;
-      line-height: 1.6;
-    }
-
-    /* Cards Grid */
-    .apps-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-      gap: 2rem;
-      margin-bottom: 3.5rem;
-    }
-
-    .app-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-lg);
-      padding: 2.25rem;
-      backdrop-filter: blur(16px);
-      box-shadow: var(--shadow-glow);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .app-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      transition: opacity 0.3s ease;
-      opacity: 0.7;
-    }
-
-    .app-card.react-card::before {
-      background: linear-gradient(90deg, #38bdf8, #6366f1);
-    }
-
-    .app-card.angular-card::before {
-      background: linear-gradient(90deg, #f43f5e, #a855f7);
-    }
-
-    .app-card:hover {
-      transform: translateY(-6px);
-      border-color: var(--card-hover-border);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    }
-
-    .card-top {
-      margin-bottom: 1.75rem;
-    }
-
-    .card-header-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1.25rem;
-    }
-
-    .tech-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.3rem 0.75rem;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-
-    .react-pill {
-      background: rgba(56, 189, 248, 0.12);
-      color: #38bdf8;
-      border: 1px solid rgba(56, 189, 248, 0.25);
-    }
-
-    .angular-pill {
-      background: rgba(244, 63, 94, 0.12);
-      color: #fb7185;
-      border: 1px solid rgba(244, 63, 94, 0.25);
+      letter-spacing: 0.05em;
+      color: var(--accent-color);
+      margin-bottom: 0.75rem;
     }
 
     .card-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 1.75rem;
+      font-size: 1.35rem;
       font-weight: 700;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.5rem;
     }
 
     .card-desc {
+      font-size: 0.925rem;
       color: var(--text-muted);
-      font-size: 0.95rem;
-      line-height: 1.6;
+      line-height: 1.5;
       margin-bottom: 1.5rem;
     }
 
-    /* Evaluator Profiles Box */
-    .profiles-box {
-      background: rgba(0, 0, 0, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: var(--radius-md);
-      padding: 1rem;
-      margin-bottom: 1.75rem;
+    /* Accounts Box */
+    .accounts-box {
+      background-color: var(--btn-secondary-bg);
+      border-radius: var(--radius-sm);
+      padding: 0.85rem 1rem;
+      margin-bottom: 1.5rem;
     }
 
-    [data-theme="light"] .profiles-box {
-      background: rgba(0, 0, 0, 0.03);
-      border: 1px solid rgba(0, 0, 0, 0.05);
-    }
-
-    .profiles-header {
-      font-size: 0.775rem;
+    .accounts-title {
+      font-size: 0.75rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: var(--text-muted);
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.5rem;
       display: flex;
-      align-items: center;
       justify-content: space-between;
     }
 
-    .profiles-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .profile-item {
+    .account-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: rgba(255, 255, 255, 0.03);
-      padding: 0.45rem 0.75rem;
-      border-radius: 8px;
       font-size: 0.85rem;
+      padding: 0.35rem 0;
     }
 
-    [data-theme="light"] .profile-item {
-      background: rgba(255, 255, 255, 0.6);
+    .account-row:not(:last-child) {
+      border-bottom: 1px solid var(--card-border);
     }
 
-    .profile-info {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+    .account-name {
+      font-weight: 500;
     }
 
-    .profile-name {
-      font-weight: 600;
-    }
-
-    .profile-user {
+    .account-user {
       color: var(--text-muted);
       font-family: monospace;
-      font-size: 0.8rem;
     }
 
     .copy-btn {
@@ -358,132 +226,57 @@
       border: none;
       color: var(--text-muted);
       cursor: pointer;
-      padding: 0.25rem;
-      border-radius: 4px;
+      padding: 0.2rem;
       display: flex;
       align-items: center;
-      transition: color 0.2s;
+      transition: color 0.2s ease;
     }
 
     .copy-btn:hover {
-      color: #6366f1;
+      color: var(--accent-color);
     }
 
-    /* Action Buttons */
-    .launch-btn {
+    /* Buttons */
+    .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 0.6rem;
+      gap: 0.5rem;
       width: 100%;
-      padding: 0.9rem 1.5rem;
-      border-radius: var(--radius-md);
+      padding: 0.8rem 1.25rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
       font-weight: 600;
-      font-size: 1rem;
       text-decoration: none;
-      transition: all 0.25s ease;
       cursor: pointer;
+      transition: background-color 0.2s ease;
       border: none;
     }
 
-    .react-btn {
-      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+    .btn-primary {
+      background-color: var(--accent-color);
       color: #ffffff;
-      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
     }
 
-    .react-btn:hover {
-      background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
-      box-shadow: 0 6px 20px rgba(2, 132, 199, 0.5);
-      transform: translateY(-2px);
+    .btn-primary:hover {
+      background-color: var(--accent-hover);
     }
 
-    .angular-btn {
-      background: linear-gradient(135deg, #e11d48 0%, #9333ea 100%);
-      color: #ffffff;
-      box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
-    }
-
-    .angular-btn:hover {
-      background: linear-gradient(135deg, #be123c 0%, #7e22ce 100%);
-      box-shadow: 0 6px 20px rgba(225, 29, 72, 0.5);
-      transform: translateY(-2px);
-    }
-
-    /* URL Configurator Drawer */
-    .config-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-md);
-      padding: 1.5rem;
-      backdrop-filter: blur(12px);
-      margin-bottom: 2.5rem;
-    }
-
-    .config-title {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .config-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.25rem;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-
-    label {
-      font-size: 0.8rem;
-      font-weight: 500;
-      color: var(--text-muted);
-    }
-
-    input[type="url"], input[type="text"] {
-      width: 100%;
-      padding: 0.65rem 0.85rem;
-      border-radius: 8px;
-      border: 1px solid var(--card-border);
-      background: rgba(0, 0, 0, 0.2);
-      color: var(--text-main);
-      font-family: inherit;
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    [data-theme="light"] input[type="url"], [data-theme="light"] input[type="text"] {
-      background: rgba(255, 255, 255, 0.8);
-    }
-
-    input:focus {
-      border-color: #6366f1;
-    }
-
-    /* Toast Notification */
+    /* Toast */
     .toast {
       position: fixed;
       bottom: 2rem;
       right: 2rem;
-      background: #10b981;
+      background-color: #10b981;
       color: #ffffff;
-      padding: 0.75rem 1.25rem;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-weight: 500;
       transform: translateY(100px);
       opacity: 0;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      z-index: 1000;
+      transition: all 0.25s ease;
+      z-index: 100;
     }
 
     .toast.show {
@@ -494,29 +287,20 @@
     /* Footer */
     footer {
       text-align: center;
+      font-size: 0.85rem;
       color: var(--text-muted);
-      font-size: 0.875rem;
-      padding-top: 2rem;
+      padding-top: 1.5rem;
       border-top: 1px solid var(--card-border);
       width: 100%;
     }
 
     footer a {
-      color: #818cf8;
+      color: var(--accent-color);
       text-decoration: none;
     }
 
     footer a:hover {
       text-decoration: underline;
-    }
-
-    @media (max-width: 640px) {
-      .hero-title {
-        font-size: 2.25rem;
-      }
-      .apps-grid {
-        grid-template-columns: 1fr;
-      }
     }
   </style>
 </head>
@@ -526,92 +310,67 @@
     <!-- Header -->
     <header>
       <div class="brand">
-        <div class="brand-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <div class="brand-logo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
           </svg>
         </div>
         <span class="brand-title">Customer Support Platform</span>
       </div>
 
-      <div class="header-actions">
-        <div class="status-badge">
-          <span class="pulse-dot"></span>
-          <span>Platform Online</span>
-        </div>
-        <button class="icon-btn" id="themeToggle" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
-          <svg id="moonIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-          </svg>
-          <svg id="sunIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
-            <circle cx="12" cy="12" r="5"/>
-            <line x1="12" y1="1" x2="12" y2="3"/>
-            <line x1="12" y1="21" x2="12" y2="23"/>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-            <line x1="1" y1="12" x2="3" y2="12"/>
-            <line x1="21" y1="12" x2="23" y2="12"/>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-          </svg>
-        </button>
-      </div>
+      <button class="theme-btn" id="themeToggle" title="Toggle Theme" aria-label="Toggle Theme">
+        <svg id="moonIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <svg id="sunIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+      </button>
     </header>
 
-    <!-- Hero Section -->
+    <!-- Hero -->
     <section class="hero">
-      <div class="hero-badge">Multi-Client Monorepo Ecosystem</div>
-      <h1 class="hero-title">Select Your Application Portal</h1>
-      <p class="hero-subtitle">
-        Access the end-user React Customer Portal or the high-density Angular Support Agent Workspace built on a shared, decoupled REST backend.
-      </p>
+      <h1>Select Application</h1>
+      <p>Choose between the React Customer Portal for end-users or the Angular Support Workspace for support personnel.</p>
     </section>
 
-    <!-- Apps Cards Grid -->
-    <main class="apps-grid">
+    <!-- Grid -->
+    <main class="grid">
 
-      <!-- Customer Portal Card -->
-      <article class="app-card react-card">
-        <div class="card-top">
-          <div class="card-header-row">
-            <span class="tech-pill react-pill">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="12" cy="12" r="2.5"/>
-                <ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="currentColor" stroke-width="1.5" transform="rotate(30 12 12)"/>
-                <ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="currentColor" stroke-width="1.5" transform="rotate(90 12 12)"/>
-                <ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="currentColor" stroke-width="1.5" transform="rotate(150 12 12)"/>
-              </svg>
-              React 18 • Vite
-            </span>
-            <span style="font-size: 0.8rem; color: var(--text-muted);">Customer Client</span>
-          </div>
-
+      <!-- Customer Portal -->
+      <article class="card">
+        <div>
+          <span class="card-badge">React 18 • Vite</span>
           <h2 class="card-title">Customer Portal</h2>
-          <p class="card-desc">
-            End-user self-service portal for submitting support tickets, tracking status changes, uploading attachments, and messaging support in real time.
-          </p>
+          <p class="card-desc">Submit new support requests, view ticket timelines, upload attachments, and chat live with support.</p>
 
-          <div class="profiles-box">
-            <div class="profiles-header">
-              <span>Test Customer Credentials</span>
+          <div class="accounts-box">
+            <div class="accounts-title">
+              <span>Test Credentials</span>
               <span>Pass: password</span>
             </div>
-            <div class="profiles-list">
-              <div class="profile-item">
-                <div class="profile-info">
-                  <span class="profile-name">Alice Johnson</span>
-                  <span class="profile-user">username: alice</span>
-                </div>
-                <button class="copy-btn" onclick="copyToClipboard('alice')" title="Copy username">
+            <div class="account-row">
+              <span class="account-name">Alice Johnson</span>
+              <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <span class="account-user">alice</span>
+                <button class="copy-btn" onclick="copyText('alice')" title="Copy username">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                 </button>
               </div>
-              <div class="profile-item">
-                <div class="profile-info">
-                  <span class="profile-name">Bob Smith</span>
-                  <span class="profile-user">username: bob</span>
-                </div>
-                <button class="copy-btn" onclick="copyToClipboard('bob')" title="Copy username">
+            </div>
+            <div class="account-row">
+              <span class="account-name">Bob Smith</span>
+              <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <span class="account-user">bob</span>
+                <button class="copy-btn" onclick="copyText('bob')" title="Copy username">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                 </button>
               </div>
@@ -619,51 +378,38 @@
           </div>
         </div>
 
-        <a id="portalLink" href="https://customer-support-platform-psi.vercel.app/" class="launch-btn react-btn" target="_blank" rel="noopener">
-          <span>Launch Customer Portal</span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        <a href="https://customer-support-platform-psi.vercel.app/" class="btn btn-primary" target="_blank" rel="noopener">
+          <span>Open Customer Portal</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         </a>
       </article>
 
-      <!-- Support Workspace Card -->
-      <article class="app-card angular-card">
-        <div class="card-top">
-          <div class="card-header-row">
-            <span class="tech-pill angular-pill">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2.5L2.8 5.8l1.4 12.3L12 21.5l7.8-3.4 1.4-12.3L12 2.5zm0 2.5l5.5 2.4-1 9.1-4.5 2-4.5-2-1-9.1L12 5z"/>
-              </svg>
-              Angular 19 • RxJS
-            </span>
-            <span style="font-size: 0.8rem; color: var(--text-muted);">Internal Operational</span>
-          </div>
-
+      <!-- Support Workspace -->
+      <article class="card">
+        <div>
+          <span class="card-badge">Angular 19 • RxJS</span>
           <h2 class="card-title">Support Workspace</h2>
-          <p class="card-desc">
-            High-density dashboard for support agents & managers to filter ticket queues, manage assignments, resolve issues, and view workload analytics.
-          </p>
+          <p class="card-desc">High-density dashboard for agents and managers to filter queues, assign tickets, and view analytics.</p>
 
-          <div class="profiles-box">
-            <div class="profiles-header">
-              <span>Test Employee Credentials</span>
+          <div class="accounts-box">
+            <div class="accounts-title">
+              <span>Test Credentials</span>
               <span>Pass: password</span>
             </div>
-            <div class="profiles-list">
-              <div class="profile-item">
-                <div class="profile-info">
-                  <span class="profile-name">Charlie Davis</span>
-                  <span class="profile-user">agent_charlie</span>
-                </div>
-                <button class="copy-btn" onclick="copyToClipboard('agent_charlie')" title="Copy username">
+            <div class="account-row">
+              <span class="account-name">Charlie Davis (Agent)</span>
+              <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <span class="account-user">agent_charlie</span>
+                <button class="copy-btn" onclick="copyText('agent_charlie')" title="Copy username">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                 </button>
               </div>
-              <div class="profile-item">
-                <div class="profile-info">
-                  <span class="profile-name">Eve Foster (Manager)</span>
-                  <span class="profile-user">manager_eve</span>
-                </div>
-                <button class="copy-btn" onclick="copyToClipboard('manager_eve')" title="Copy username">
+            </div>
+            <div class="account-row">
+              <span class="account-name">Eve Foster (Manager)</span>
+              <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <span class="account-user">manager_eve</span>
+                <button class="copy-btn" onclick="copyText('manager_eve')" title="Copy username">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                 </button>
               </div>
@@ -671,43 +417,23 @@
           </div>
         </div>
 
-        <a id="workspaceLink" href="https://customer-support-platform-xqym.vercel.app/login" class="launch-btn angular-btn" target="_blank" rel="noopener">
-          <span>Launch Support Workspace</span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        <a href="https://customer-support-platform-xqym.vercel.app/login" class="btn btn-primary" target="_blank" rel="noopener">
+          <span>Open Support Workspace</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         </a>
       </article>
 
     </main>
 
-    <!-- Custom URL Configurator Section -->
-    <section class="config-card">
-      <div class="config-title">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <span>Production Deployment Links Configurator</span>
-      </div>
-      <div class="config-grid">
-        <div class="form-group">
-          <label for="portalUrlInput">Customer Portal URL</label>
-          <input type="text" id="portalUrlInput" placeholder="https://customer-support-platform-psi.vercel.app/">
-        </div>
-        <div class="form-group">
-          <label for="workspaceUrlInput">Support Workspace URL</label>
-          <input type="text" id="workspaceUrlInput" placeholder="https://customer-support-platform-xqym.vercel.app/login">
-        </div>
-      </div>
-    </section>
-
     <!-- Footer -->
     <footer>
-      <p>Customer Support Platform Monorepo • View project on <a href="https://github.com/bishoyyousef/customer-support-platform" target="_blank" rel="noopener">GitHub</a></p>
+      <p>Customer Support Monorepo • <a href="https://github.com/bishoyyousef/customer-support-platform" target="_blank" rel="noopener">GitHub Repository</a></p>
     </footer>
-
   </div>
 
   <div id="toast" class="toast">Copied to clipboard!</div>
 
   <script>
-    // Theme Management
     const themeToggle = document.getElementById('themeToggle');
     const moonIcon = document.getElementById('moonIcon');
     const sunIcon = document.getElementById('sunIcon');
@@ -732,50 +458,14 @@
       setTheme(current === 'dark' ? 'light' : 'dark');
     });
 
-    // Copy Helper
-    function copyToClipboard(text) {
+    function copyText(text) {
       navigator.clipboard.writeText(text).then(() => {
-        showToast(`Copied "${text}" to clipboard!`);
+        const toast = document.getElementById('toast');
+        toast.textContent = `Copied "${text}"`;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
       });
     }
-
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      toast.textContent = msg;
-      toast.classList.add('show');
-      setTimeout(() => {
-        toast.classList.remove('show');
-      }, 2500);
-    }
-
-    // URL Configurator
-    const portalLink = document.getElementById('portalLink');
-    const workspaceLink = document.getElementById('workspaceLink');
-    const portalUrlInput = document.getElementById('portalUrlInput');
-    const workspaceUrlInput = document.getElementById('workspaceUrlInput');
-
-    const defaultPortalUrl = 'https://customer-support-platform-psi.vercel.app/';
-    const defaultWorkspaceUrl = 'https://customer-support-platform-xqym.vercel.app/login';
-
-    const savedPortalUrl = localStorage.getItem('custom_portal_url') || defaultPortalUrl;
-    const savedWorkspaceUrl = localStorage.getItem('custom_workspace_url') || defaultWorkspaceUrl;
-
-    portalUrlInput.value = savedPortalUrl;
-    workspaceUrlInput.value = savedWorkspaceUrl;
-    portalLink.href = savedPortalUrl;
-    workspaceLink.href = savedWorkspaceUrl;
-
-    portalUrlInput.addEventListener('input', (e) => {
-      const val = e.target.value.trim() || defaultPortalUrl;
-      portalLink.href = val;
-      localStorage.setItem('custom_portal_url', val);
-    });
-
-    workspaceUrlInput.addEventListener('input', (e) => {
-      const val = e.target.value.trim() || defaultWorkspaceUrl;
-      workspaceLink.href = val;
-      localStorage.setItem('custom_workspace_url', val);
-    });
   </script>
 </body>
 </html>
