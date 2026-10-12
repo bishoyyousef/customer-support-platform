@@ -14,7 +14,7 @@ Since this repository is a **Monorepo**, it contains **two distinct frontend app
 
 | Application | Technology | Folder Path | Live Production URL | Local Launch Command |
 | :--- | :--- | :--- | :--- | :--- |
-| **Landing Page Hub** | HTML5 + CSS3 | [`/index.html`](./index.html) | Root Monorepo Entry | `npm run start:landing` |
+| **Landing Page Hub** | HTML5 + CSS3 | [`/landing-page`](./landing-page) | [Root Monorepo Entry](https://customer-support-platform-landing-p.vercel.app/) | `npm run start:landing` |
 | **Customer Portal** | React 18 + Vite + TS | [`/customer-portal`](./customer-portal) | [🔗 Launch Customer Portal](https://customer-support-platform-psi.vercel.app/) | `npm run start:portal` |
 | **Support Workspace** | Angular 19 + RxJS | [`/support-workspace`](./support-workspace) | [🔗 Launch Support Workspace](https://customer-support-platform-xqym.vercel.app/login) | `npm run start:workspace` |
 | **Backend REST API** | Node.js + Express + MongoDB | [`/backend`](./backend) | Cloud REST API | `npm run start:backend` |
